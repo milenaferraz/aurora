@@ -272,12 +272,12 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `IHermesClient`: `ChatAsync(ChatRequest, CancellationToken): Task<ChatResponse>`, `StreamChatAsync(ChatRequest, CancellationToken): IAsyncEnumerable<ChatStreamEvent>`, `IsHealthyAsync(CancellationToken): Task<bool>`
-- [ ] `ICalendarProvider`: `GetTodaySummaryAsync(CancellationToken): Task<CalendarSummary>`
-- [ ] `ITaskProvider`: `GetPendingCountAsync(CancellationToken): Task<TaskSummary>`
-- [ ] `IEmailProvider`: `GetImportantCountAsync(CancellationToken): Task<EmailSummary>`
-- [ ] Summary record types defined: `CalendarSummary(int Count, NextEvent? Next)`, `TaskSummary(int Count)`, `EmailSummary(int Count)`
-- [ ] Build passes
+- [x] `IHermesClient`: `ChatAsync(ChatRequest, CancellationToken): Task<ChatResponse>`, `StreamChatAsync(ChatRequest, CancellationToken): IAsyncEnumerable<ChatStreamEvent>`, `IsHealthyAsync(CancellationToken): Task<bool>`
+- [x] `ICalendarProvider`: `GetTodaySummaryAsync(CancellationToken): Task<CalendarSummary>`
+- [x] `ITaskProvider`: `GetPendingCountAsync(CancellationToken): Task<TaskSummary>`
+- [x] `IEmailProvider`: `GetImportantCountAsync(CancellationToken): Task<EmailSummary>`
+- [x] Summary record types defined: `CalendarSummary(int Count, NextEvent? Next)`, `TaskSummary(int Count)`, `EmailSummary(int Count)`
+- [x] Build passes
 
 **Tests**: none
 **Gate**: Build (backend)
