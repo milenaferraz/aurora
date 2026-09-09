@@ -338,13 +338,13 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `CorrelationIdMiddleware`: reads `X-Correlation-Id`; generates new UUID if absent; stores in `HttpContext.Items["CorrelationId"]`; attaches to response header
-- [ ] `ExceptionHandlerMiddleware`: catches unhandled exceptions; logs via `ILogger<ExceptionHandlerMiddleware>` with correlation ID; returns `500 {"error":"An unexpected error occurred","correlationId":"..."}` with no stack trace exposed; maps `HermesException` → `502 {"error":"Hermes is unreachable"}`
-- [ ] Unit test (CorrelationId): absent header → UUID generated and set in Items + response
-- [ ] Unit test (CorrelationId): present header → same value echoed in response
-- [ ] Unit test (ExceptionHandler): unhandled exception → 500 JSON body with `correlationId` field
-- [ ] Unit test (ExceptionHandler): `HermesException` → 502 JSON body
-- [ ] `dotnet test tests/Aurora.UnitTests` exits 0
+- [x] `CorrelationIdMiddleware`: reads `X-Correlation-Id`; generates new UUID if absent; stores in `HttpContext.Items["CorrelationId"]`; attaches to response header
+- [x] `ExceptionHandlerMiddleware`: catches unhandled exceptions; logs via `ILogger<ExceptionHandlerMiddleware>` with correlation ID; returns `500 {"error":"An unexpected error occurred","correlationId":"..."}` with no stack trace exposed; maps `HermesException` → `502 {"error":"Hermes is unreachable"}`
+- [x] Unit test (CorrelationId): absent header → UUID generated and set in Items + response
+- [x] Unit test (CorrelationId): present header → same value echoed in response
+- [x] Unit test (ExceptionHandler): unhandled exception → 500 JSON body with `correlationId` field
+- [x] Unit test (ExceptionHandler): `HermesException` → 502 JSON body
+- [x] `dotnet test tests/Aurora.UnitTests` exits 0
 
 **Tests**: unit
 **Gate**: Quick (backend)

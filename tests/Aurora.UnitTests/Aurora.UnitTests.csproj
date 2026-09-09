@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Aurora.Api\Aurora.Api.csproj" />
     <ProjectReference Include="..\..\src\Aurora.Application\Aurora.Application.csproj" />
     <ProjectReference Include="..\..\src\Aurora.Infrastructure\Aurora.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Aurora.Domain\Aurora.Domain.csproj" />
