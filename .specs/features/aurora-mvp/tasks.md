@@ -454,13 +454,13 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `POST /api/chat/stream`: sets `Content-Type: text/event-stream; charset=utf-8`; disables response buffering (`IHttpBodyControlFeature`); sets `Cache-Control: no-cache`
-- [ ] Iterates `ChatStreamingService.StreamAsync`; writes `event: {type}\ndata: {json}\n\n` per event; flushes after each
-- [ ] `OperationCanceledException` (client disconnect) exits silently
-- [ ] `HermesException` emits `error` SSE event with safe message, then returns
-- [ ] Integration test: `POST /api/chat/stream` returns `Content-Type: text/event-stream`; response body contains `message.started` and `message.completed` events from FakeHermesClient
-- [ ] Integration test: verifies no internal chain-of-thought in any event `Content` field
-- [ ] `dotnet test tests/Aurora.IntegrationTests` exits 0
+- [x] `POST /api/chat/stream`: sets `Content-Type: text/event-stream; charset=utf-8`; disables response buffering (`IHttpBodyControlFeature`); sets `Cache-Control: no-cache`
+- [x] Iterates `ChatStreamingService.StreamAsync`; writes `event: {type}\ndata: {json}\n\n` per event; flushes after each
+- [x] `OperationCanceledException` (client disconnect) exits silently
+- [x] `HermesException` emits `error` SSE event with safe message, then returns
+- [x] Integration test: `POST /api/chat/stream` returns `Content-Type: text/event-stream`; response body contains `message.started` and `message.completed` events from FakeHermesClient
+- [x] Integration test: verifies no internal chain-of-thought in any event `Content` field
+- [x] `dotnet test tests/Aurora.IntegrationTests` exits 0
 
 **Tests**: integration
 **Gate**: Full (backend)

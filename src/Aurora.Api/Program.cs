@@ -31,6 +31,7 @@ if (useFake)
 
 // Application services
 builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<ChatStreamingService>();
 
 // FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
