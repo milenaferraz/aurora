@@ -1,0 +1,12 @@
+bin/
+obj/
+node_modules/
+.env
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+*.user
+dist/
+.vs/
+*.suo
+.DS_Store
