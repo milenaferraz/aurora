@@ -477,12 +477,12 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Accepts `state` prop: `'idle'|'listening'|'thinking'|'speaking'|'working'|'error'`
-- [ ] 3 concentric SVG/CSS rings; `idle`: slow pulse, electric blue (`#0ea5e9`) glow; `listening`: cyan (`#06b6d4`), faster pulse; `thinking`: purple (`#8b5cf6`), rotation; `speaking`: outward wave; `working`: orbiting dot; `error`: red (`#ef4444`), static
-- [ ] Pure CSS `@keyframes`; state drives class binding via computed; no external images
-- [ ] Unit test: renders without errors in all 6 states (mount with each state prop value)
-- [ ] Unit test: prop `state='thinking'` → root element has class that triggers rotation (assert class name applied)
-- [ ] `npm run test --prefix src/aurora-web` exits 0
+- [x] Accepts `state` prop: `'idle'|'listening'|'thinking'|'speaking'|'working'|'error'`
+- [x] 3 concentric SVG/CSS rings; `idle`: slow pulse, electric blue (`#0ea5e9`) glow; `listening`: cyan (`#06b6d4`), faster pulse; `thinking`: purple (`#8b5cf6`), rotation; `speaking`: outward wave; `working`: orbiting dot; `error`: red (`#ef4444`), static
+- [x] Pure CSS `@keyframes`; state drives class binding via computed; no external images
+- [x] Unit test: renders without errors in all 6 states (mount with each state prop value)
+- [x] Unit test: prop `state='thinking'` → root element has class that triggers rotation (assert class name applied)
+- [x] `npm run test --prefix src/aurora-web` exits 0
 
 **Tests**: unit
 **Gate**: Quick (frontend)
