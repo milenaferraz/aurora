@@ -294,12 +294,12 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `StreamChatAsync` yields exactly 4 events in order: `message.started` → `message.delta` ("Boa noite! ✨") → `message.delta` ("\n\nEstou online e pronta para ajudar.") → `message.completed` (new Guid ConversationId)
-- [ ] `ChatAsync` returns a `ChatResponse` with a canned message after 200ms fake delay
-- [ ] `IsHealthyAsync` always returns `true`
-- [ ] Unit test: `StreamChatAsync` yields 4 events with correct `EventType` values in order
-- [ ] Unit test: `ChatAsync` returns non-null, non-empty `ConversationId`
-- [ ] `dotnet test tests/Aurora.UnitTests` exits 0
+- [x] `StreamChatAsync` yields exactly 4 events in order: `message.started` → `message.delta` ("Boa noite! ✨") → `message.delta` ("\n\nEstou online e pronta para ajudar.") → `message.completed` (new Guid ConversationId)
+- [x] `ChatAsync` returns a `ChatResponse` with a canned message after 200ms fake delay
+- [x] `IsHealthyAsync` always returns `true`
+- [x] Unit test: `StreamChatAsync` yields 4 events with correct `EventType` values in order
+- [x] Unit test: `ChatAsync` returns non-null, non-empty `ConversationId`
+- [x] `dotnet test tests/Aurora.UnitTests` exits 0
 
 **Tests**: unit
 **Gate**: Quick (backend)
