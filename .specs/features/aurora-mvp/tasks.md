@@ -384,13 +384,13 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `npm create vite@latest aurora-web -- --template vue-ts` (or equivalent) with TypeScript strict
-- [ ] Installed: Pinia, Vue Router, Axios, Tailwind CSS (+ Vite plugin or PostCSS), Vitest, @vue/test-utils
-- [ ] ESLint + Prettier configured
-- [ ] `src/api/auroraApi.ts`: Axios instance with `baseURL` from `import.meta.env.VITE_AURORA_API_URL` falling back to `http://localhost:8080` with `console.warn`
-- [ ] `src/api/chatApi.ts`: `chat(request: ChatRequest): Promise<ChatResponse>` using `auroraApi`
-- [ ] TypeScript strict mode: zero type errors
-- [ ] `npm run build --prefix src/aurora-web` exits 0
+- [x] `npm create vite@latest aurora-web -- --template vue-ts` (or equivalent) with TypeScript strict
+- [x] Installed: Pinia, Vue Router, Axios, Tailwind CSS (+ Vite plugin or PostCSS), Vitest, @vue/test-utils
+- [x] ESLint + Prettier configured
+- [x] `src/api/auroraApi.ts`: Axios instance with `baseURL` from `import.meta.env.VITE_AURORA_API_URL` falling back to `http://localhost:8080` with `console.warn`
+- [x] `src/api/chatApi.ts`: `chat(request: ChatRequest): Promise<ChatResponse>` using `auroraApi`
+- [x] TypeScript strict mode: zero type errors
+- [x] `npm run build --prefix src/aurora-web` exits 0
 
 **Tests**: none
 **Gate**: Build (frontend)
