@@ -433,11 +433,11 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `StreamAsync(ChatRequest, CancellationToken): IAsyncEnumerable<ChatStreamEvent>` delegates to `IHermesClient.StreamChatAsync`
-- [ ] Assigns `ConversationId` if request's is null (same logic as `ChatService`)
-- [ ] Unit test (mocked IHermesClient): yields all events from mock; ConversationId assigned when null
-- [ ] Unit test: provided ConversationId passes through unchanged
-- [ ] `dotnet test tests/Aurora.UnitTests` exits 0
+- [x] `StreamAsync(ChatRequest, CancellationToken): IAsyncEnumerable<ChatStreamEvent>` delegates to `IHermesClient.StreamChatAsync`
+- [x] Assigns `ConversationId` if request's is null (same logic as `ChatService`)
+- [x] Unit test (mocked IHermesClient): yields all events from mock; ConversationId assigned when null
+- [x] Unit test: provided ConversationId passes through unchanged
+- [x] `dotnet test tests/Aurora.UnitTests` exits 0
 
 **Tests**: unit
 **Gate**: Quick (backend)
