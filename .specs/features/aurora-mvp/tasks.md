@@ -547,14 +547,14 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `ChatInput.vue`: styled text input + send button; emits `submit(message)`; disabled while `chatStore.streaming === true`; clears input on submit; dark glassmorphism style
-- [ ] `ChatMessage.vue`: accepts `{ role, content }`; different visual styles for user (right-aligned, blue accent) vs assistant (left-aligned, glass card)
-- [ ] `ChatMessages.vue`: renders `chatStore.messages` as `ChatMessage` list; auto-scrolls to bottom on new message
-- [ ] `AuroraThinking.vue`: shown while `chatStore.streaming === true`; cycles through labels ("Consultando agenda", "Analisando informações", "Preparando resposta") with animated dots
-- [ ] `ToolActivity.vue`: displays `activeTool` from `useChat` with icon when non-null
-- [ ] `ChatView.vue` (full replacement): renders all components; uses `useChat().sendMessage` on `ChatInput` submit; full dark futuristic aesthetic (glassmorphism, electric blue/purple, generous space)
-- [ ] **MILESTONE 2 DEMO**: streaming works — type message → "Aurora está pensando..." → text appears progressively
-- [ ] `npm run build --prefix src/aurora-web` exits 0
+- [x] `ChatInput.vue`: styled text input + send button; emits `submit(message)`; disabled while `chatStore.streaming === true`; clears input on submit; dark glassmorphism style
+- [x] `ChatMessage.vue`: accepts `{ role, content }`; different visual styles for user (right-aligned, blue accent) vs assistant (left-aligned, glass card)
+- [x] `ChatMessages.vue`: renders `chatStore.messages` as `ChatMessage` list; auto-scrolls to bottom on new message
+- [x] `AuroraThinking.vue`: shown while `chatStore.streaming === true`; cycles through labels ("Consultando agenda", "Analisando informações", "Preparando resposta") with animated dots
+- [x] `ToolActivity.vue`: displays `activeTool` from `useChat` with icon when non-null
+- [x] `ChatView.vue` (full replacement): renders all components; uses `useChat().sendMessage` on `ChatInput` submit; full dark futuristic aesthetic (glassmorphism, electric blue/purple, generous space)
+- [x] **MILESTONE 2 DEMO**: streaming works — type message → "Aurora está pensando..." → text appears progressively
+- [x] `npm run build --prefix src/aurora-web` exits 0
 
 **Tests**: none
 **Gate**: Build (frontend)
