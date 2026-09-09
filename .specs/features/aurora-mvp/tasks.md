@@ -361,13 +361,13 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `POST /api/chat`: validates `message` non-empty (FluentValidation); calls `ChatService.ChatAsync`; returns 200 `ChatResponse`; empty message → 400 with validation errors
-- [ ] `Program.cs`: registers DI (Infrastructure services with `Hermes__UseFake=true` default), CORS (`http://localhost:5173`), FluentValidation, Serilog minimal console, controllers; middleware order: ExceptionHandler → CorrelationId → CORS → Controllers
-- [ ] `appsettings.json` has `Hermes` section (`BaseUrl`, `UseFake`), `AllowedOrigins` array — no secrets or hardcoded URLs
-- [ ] Integration test (`WebApplicationFactory`): `POST /api/chat` returns 200 with `conversationId` and `message` (using FakeHermesClient)
-- [ ] Integration test: empty `message` returns 400
-- [ ] Integration test: response has `X-Correlation-Id` header
-- [ ] `dotnet test tests/Aurora.IntegrationTests` exits 0
+- [x] `POST /api/chat`: validates `message` non-empty (FluentValidation); calls `ChatService.ChatAsync`; returns 200 `ChatResponse`; empty message → 400 with validation errors
+- [x] `Program.cs`: registers DI (Infrastructure services with `Hermes__UseFake=true` default), CORS (`http://localhost:5173`), FluentValidation, Serilog minimal console, controllers; middleware order: ExceptionHandler → CorrelationId → CORS → Controllers
+- [x] `appsettings.json` has `Hermes` section (`BaseUrl`, `UseFake`), `AllowedOrigins` array — no secrets or hardcoded URLs
+- [x] Integration test (`WebApplicationFactory`): `POST /api/chat` returns 200 with `conversationId` and `message` (using FakeHermesClient)
+- [x] Integration test: empty `message` returns 400
+- [x] Integration test: response has `X-Correlation-Id` header
+- [x] `dotnet test tests/Aurora.IntegrationTests` exits 0
 
 **Tests**: integration
 **Gate**: Full (backend)
