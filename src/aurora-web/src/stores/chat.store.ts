@@ -28,9 +28,13 @@ export const useChatStore = defineStore('chat', () => {
     streaming.value = value
   }
 
+  function setAbortController(controller: AbortController | null) {
+    abortController.value = controller
+  }
+
   function clearAbort() {
     abortController.value = null
   }
 
-  return { messages, streaming, abortController, addMessage, appendDelta, setStreaming, clearAbort }
+  return { messages, streaming, abortController, addMessage, appendDelta, setStreaming, setAbortController, clearAbort }
 })

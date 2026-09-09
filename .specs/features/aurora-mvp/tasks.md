@@ -521,16 +521,16 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `sendMessage(message: string)`: sets `auroraStore.state = 'thinking'`; sets `chatStore.streaming = true`; adds user message to store; creates `AbortController`; calls `fetch` POST `/api/chat/stream`; reads body as `ReadableStream<Uint8Array>`; parses SSE lines (`event:` and `data:` pairs) via `TextDecoder`
-- [ ] On `message.delta`: calls `chatStore.appendDelta(content)` (progressive rendering)
-- [ ] On `tool.started` / `tool.completed`: updates a `activeTool` ref in the store or returns via reactive
-- [ ] On `message.completed`: `auroraStore.setState('idle')`; `chatStore.setStreaming(false)`
-- [ ] On `error` SSE event or fetch error: adds error message to chat; `auroraStore.setState('error')`; `chatStore.setStreaming(false)`
-- [ ] Exposes `activeTool: Ref<string|null>` for `ToolActivity` to consume
-- [ ] Unit test: mock `fetch` returns a ReadableStream with FakeHermes SSE bytes → `message.delta` calls `appendDelta` with correct content
-- [ ] Unit test: `error` SSE event → error message added to chatStore; aurora state set to `'error'`
-- [ ] Unit test: after `message.completed` → auroraStore state is `'idle'`; streaming is false
-- [ ] `npm run test --prefix src/aurora-web` exits 0
+- [x] `sendMessage(message: string)`: sets `auroraStore.state = 'thinking'`; sets `chatStore.streaming = true`; adds user message to store; creates `AbortController`; calls `fetch` POST `/api/chat/stream`; reads body as `ReadableStream<Uint8Array>`; parses SSE lines (`event:` and `data:` pairs) via `TextDecoder`
+- [x] On `message.delta`: calls `chatStore.appendDelta(content)` (progressive rendering)
+- [x] On `tool.started` / `tool.completed`: updates a `activeTool` ref in the store or returns via reactive
+- [x] On `message.completed`: `auroraStore.setState('idle')`; `chatStore.setStreaming(false)`
+- [x] On `error` SSE event or fetch error: adds error message to chat; `auroraStore.setState('error')`; `chatStore.setStreaming(false)`
+- [x] Exposes `activeTool: Ref<string|null>` for `ToolActivity` to consume
+- [x] Unit test: mock `fetch` returns a ReadableStream with FakeHermes SSE bytes → `message.delta` calls `appendDelta` with correct content
+- [x] Unit test: `error` SSE event → error message added to chatStore; aurora state set to `'error'`
+- [x] Unit test: after `message.completed` → auroraStore state is `'idle'`; streaming is false
+- [x] `npm run test --prefix src/aurora-web` exits 0
 
 **Tests**: unit
 **Gate**: Quick (frontend)
