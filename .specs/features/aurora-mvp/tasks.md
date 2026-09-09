@@ -499,12 +499,12 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `auroraStore` (Pinia): `state: AuroraState` (`'idle'|'listening'|'thinking'|'speaking'|'working'|'error'`); `setState(s: AuroraState)` action; initialized to `'idle'`
-- [ ] `chatStore` (Pinia): `messages: ChatMessage[]`; `streaming: boolean`; `abortController: AbortController | null`; `addMessage(m)`, `appendDelta(content)` (appends to last assistant message), `setStreaming(b)`, `clearAbort()` actions
-- [ ] Router: `/` → `HomeView` (placeholder), `/chat` → `ChatView`; `ChatView` now uses `chatStore` instead of local state
-- [ ] Unit test (`auroraStore`): `setState('thinking')` updates state; initialized to `'idle'`
-- [ ] Unit test (`chatStore`): `addMessage` appends; `appendDelta` updates last assistant message content; `setStreaming(true)` flips flag
-- [ ] `npm run test --prefix src/aurora-web` exits 0
+- [x] `auroraStore` (Pinia): `state: AuroraState` (`'idle'|'listening'|'thinking'|'speaking'|'working'|'error'`); `setState(s: AuroraState)` action; initialized to `'idle'`
+- [x] `chatStore` (Pinia): `messages: ChatMessage[]`; `streaming: boolean`; `abortController: AbortController | null`; `addMessage(m)`, `appendDelta(content)` (appends to last assistant message), `setStreaming(b)`, `clearAbort()` actions
+- [x] Router: `/` → `HomeView` (placeholder), `/chat` → `ChatView`; `ChatView` now uses `chatStore` instead of local state
+- [x] Unit test (`auroraStore`): `setState('thinking')` updates state; initialized to `'idle'`
+- [x] Unit test (`chatStore`): `addMessage` appends; `appendDelta` updates last assistant message content; `setStreaming(true)` flips flag
+- [x] `npm run test --prefix src/aurora-web` exits 0
 
 **Tests**: unit
 **Gate**: Quick (frontend)
