@@ -251,11 +251,11 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `ChatRequest`: `record ChatRequest(string Message, string? ConversationId)`
-- [ ] `ChatResponse`: `record ChatResponse(string ConversationId, string Message)`
-- [ ] `ChatStreamEvent`: `record ChatStreamEvent(string EventType, string? Content, string? Tool, string? ConversationId)`
-- [ ] `DashboardResponse`: class with nested `AuroraStatus`, `AgendaSummary`, `TasksSummary`, `EmailsSummary`, `SystemStatus` matching AURORA-05 schema
-- [ ] Build passes
+- [x] `ChatRequest`: `record ChatRequest(string Message, string? ConversationId)`
+- [x] `ChatResponse`: `record ChatResponse(string ConversationId, string Message)`
+- [x] `ChatStreamEvent`: `record ChatStreamEvent(string EventType, string? Content, string? Tool, string? ConversationId)`
+- [x] `DashboardResponse`: class with nested `AuroraStatus`, `AgendaSummary`, `TasksSummary`, `EmailsSummary`, `SystemStatus` matching AURORA-05 schema
+- [x] Build passes
 
 **Tests**: none
 **Gate**: Build (backend)
