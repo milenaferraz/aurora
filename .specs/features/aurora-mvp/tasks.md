@@ -316,12 +316,12 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `ChatService.ChatAsync(ChatRequest, CancellationToken): Task<ChatResponse>` delegates to `IHermesClient.ChatAsync`
-- [ ] When `request.ConversationId` is null or empty, assigns a new `Guid.NewGuid().ToString()` before passing to Hermes and returns it in the response
-- [ ] When `ConversationId` is provided, passes it through unchanged
-- [ ] Unit test (NSubstitute mocked `IHermesClient`): null ConversationId → new UUID assigned; response ConversationId matches what Hermes returned
-- [ ] Unit test: provided ConversationId passes through unchanged
-- [ ] `dotnet test tests/Aurora.UnitTests` exits 0
+- [x] `ChatService.ChatAsync(ChatRequest, CancellationToken): Task<ChatResponse>` delegates to `IHermesClient.ChatAsync`
+- [x] When `request.ConversationId` is null or empty, assigns a new `Guid.NewGuid().ToString()` before passing to Hermes and returns it in the response
+- [x] When `ConversationId` is provided, passes it through unchanged
+- [x] Unit test (NSubstitute mocked `IHermesClient`): null ConversationId → new UUID assigned; response ConversationId matches what Hermes returned
+- [x] Unit test: provided ConversationId passes through unchanged
+- [x] `dotnet test tests/Aurora.UnitTests` exits 0
 
 **Tests**: unit
 **Gate**: Quick (backend)
