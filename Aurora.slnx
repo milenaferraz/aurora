@@ -6,4 +6,8 @@
     <Project Path="src/Aurora.Domain/Aurora.Domain.csproj" />
     <Project Path="src/Aurora.Infrastructure/Aurora.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aurora.IntegrationTests/Aurora.IntegrationTests.csproj" />
+    <Project Path="tests/Aurora.UnitTests/Aurora.UnitTests.csproj" />
+  </Folder>
 </Solution>

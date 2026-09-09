@@ -211,11 +211,11 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] References: `Api → Application, Infrastructure, Contracts`; `Application → Domain, Contracts`; `Infrastructure → Application, Domain`
-- [ ] Aurora.Api NuGets: `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `FluentValidation.AspNetCore`, `Swashbuckle.AspNetCore`, `Microsoft.Extensions.Diagnostics.HealthChecks`
-- [ ] Aurora.Infrastructure NuGets: `Microsoft.Extensions.Http`
-- [ ] Test projects in `tests/` with `xunit`, `FluentAssertions`, `NSubstitute`, `Microsoft.AspNetCore.Mvc.Testing`
-- [ ] `dotnet build Aurora.sln` exits 0
+- [x] References: `Api → Application, Infrastructure, Contracts`; `Application → Domain, Contracts`; `Infrastructure → Application, Domain`
+- [x] Aurora.Api NuGets: `Serilog.AspNetCore`, `Serilog.Sinks.Console`, `FluentValidation.AspNetCore`, `Swashbuckle.AspNetCore`, `Microsoft.Extensions.Diagnostics.HealthChecks`
+- [x] Aurora.Infrastructure NuGets: `Microsoft.Extensions.Http`
+- [x] Test projects in `tests/` with `xunit`, `FluentAssertions`, `NSubstitute`, `Microsoft.AspNetCore.Mvc.Testing`
+- [x] `dotnet build Aurora.slnx` exits 0
 
 **Tests**: none
 **Gate**: Build (backend)
