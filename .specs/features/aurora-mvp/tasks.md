@@ -407,12 +407,12 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Router configured: `/` redirects to `/chat` temporarily; `/chat` renders `ChatView`
-- [ ] `ChatView.vue`: text input + "Enviar" button; on submit calls `chatApi.chat({ message })`; displays Aurora's response below; shows "Aurora está pensando..." while loading; dark background (`#050510`); basic styling (not full glassmorphism yet — that comes in T18)
-- [ ] `App.vue`: renders `<RouterView />`
-- [ ] `.env.development` created with `VITE_AURORA_API_URL=http://localhost:8080`
-- [ ] **MILESTONE 1 DEMO**: `dotnet run` (backend) + `npm run dev` (frontend) → type "Aurora, boa noite." → response appears
-- [ ] `npm run build --prefix src/aurora-web` exits 0
+- [x] Router configured: `/` redirects to `/chat` temporarily; `/chat` renders `ChatView`
+- [x] `ChatView.vue`: text input + "Enviar" button; on submit calls `chatApi.chat({ message })`; displays Aurora's response below; shows "Aurora está pensando..." while loading; dark background (`#050510`); basic styling (not full glassmorphism yet — that comes in T18)
+- [x] `App.vue`: renders `<RouterView />`
+- [x] `.env.development` created with `VITE_AURORA_API_URL=http://localhost:8080`
+- [x] **MILESTONE 1 DEMO**: `dotnet run` (backend) + `npm run dev` (frontend) → type "Aurora, boa noite." → response appears
+- [x] `npm run build --prefix src/aurora-web` exits 0
 
 **Tests**: none
 **Gate**: Build (frontend)
