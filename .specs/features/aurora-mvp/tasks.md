@@ -232,9 +232,9 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `HermesException : Exception` with `int StatusCode` property
-- [ ] Constructor `(string message, int statusCode = 0)` — both overloads work
-- [ ] Build passes
+- [x] `HermesException : Exception` with `int StatusCode` property
+- [x] Constructor `(string message, int statusCode = 0)` — both overloads work
+- [x] Build passes
 
 **Tests**: none
 **Gate**: Build (backend)
