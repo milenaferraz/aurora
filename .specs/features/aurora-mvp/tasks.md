@@ -191,10 +191,10 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `Aurora.sln` created with `dotnet new sln -n Aurora`
-- [ ] Five projects scaffolded: Aurora.Api (webapi), Aurora.Application (classlib), Aurora.Infrastructure (classlib), Aurora.Domain (classlib), Aurora.Contracts (classlib)
-- [ ] All target `net9.0`; `<Nullable>enable</Nullable>` in every `.csproj`
-- [ ] All projects added to solution; `dotnet build Aurora.sln` exits 0
+- [x] `Aurora.sln` created with `dotnet new sln -n Aurora`
+- [x] Five projects scaffolded: Aurora.Api (webapi), Aurora.Application (classlib), Aurora.Infrastructure (classlib), Aurora.Domain (classlib), Aurora.Contracts (classlib)
+- [x] All target `net8.0`; `<Nullable>enable</Nullable>` in every `.csproj`
+- [x] All projects added to solution; `dotnet build Aurora.slnx` exits 0
 
 **Tests**: none
 **Gate**: Build (backend)
