@@ -21,7 +21,6 @@ services:
     networks:
       - aurora-net
 
-
   aurora-web:
     build:
       context: src/aurora-web
@@ -40,7 +39,6 @@ services:
 
     networks:
       - aurora-net
-
 
 networks:
   aurora-net:
