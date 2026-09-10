@@ -78,6 +78,9 @@ export function useChat() {
       case 'message.delta':
         if (typeof data.content === 'string') {
           chatStore.appendDelta(data.content)
+          if (auroraStore.state === 'thinking') {
+            auroraStore.setState('speaking')
+          }
         }
         break
       case 'tool.started':
