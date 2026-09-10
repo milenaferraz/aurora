@@ -9,6 +9,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - Hermes__BaseUrl=http://host.docker.internal:${HERMES_PORT}
       - Hermes__UseFake=false
+      - Hermes__ApiKey=${HERMES_API_KEY}
+      - Hermes__Model=${HERMES_MODEL:-hermes}
       - AllowedOrigins__0=http://srv1969131.hstgr.cloud
       - AllowedOrigins__1=https://srv1969131.hstgr.cloud
     extra_hosts:
