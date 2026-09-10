@@ -16,17 +16,12 @@ public static class InfrastructureServiceExtensions
         var hermesOptions = configuration.GetSection("Hermes").Get<HermesOptions>()
             ?? new HermesOptions();
 
-        if (!hermesOptions.UseFake && string.IsNullOrWhiteSpace(hermesOptions.BaseUrl))
-            throw new InvalidOperationException(
-                "Hermes:BaseUrl must be configured when Hermes:UseFake is false.");
+        if (string.IsNullOrWhiteSpace(hermesOptions.BaseUrl))
+            throw new InvalidOperationException("Hermes:BaseUrl must be configured.");
 
         services.Configure<HermesOptions>(configuration.GetSection("Hermes"));
         services.AddHttpClient("hermes");
-
-        if (hermesOptions.UseFake)
-            services.AddSingleton<IHermesClient, FakeHermesClient>();
-        else
-            services.AddSingleton<IHermesClient, HermesHttpClient>();
+        services.AddSingleton<IHermesClient, HermesHttpClient>();
 
         services.AddSingleton<ICalendarProvider, MockCalendarProvider>();
         services.AddSingleton<ITaskProvider, MockTaskProvider>();

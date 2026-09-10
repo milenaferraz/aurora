@@ -27,7 +27,7 @@ public class HermesHttpClientTests
         var factory = Substitute.For<IHttpClientFactory>();
         factory.CreateClient("hermes").Returns(httpClient);
 
-        var options = Options.Create(new HermesOptions { BaseUrl = baseUrl, UseFake = false });
+        var options = Options.Create(new HermesOptions { BaseUrl = baseUrl });
         return new HermesHttpClient(options, factory);
     }
 
@@ -53,7 +53,7 @@ public class HermesHttpClientTests
         var factory = Substitute.For<IHttpClientFactory>();
         factory.CreateClient("hermes").Returns(httpClient);
 
-        var options = Options.Create(new HermesOptions { BaseUrl = "http://hermes.test", UseFake = false });
+        var options = Options.Create(new HermesOptions { BaseUrl = "http://hermes.test" });
         var sut = new HermesHttpClient(options, factory);
 
         var result = await sut.IsHealthyAsync(CancellationToken.None);
@@ -66,7 +66,7 @@ public class HermesHttpClientTests
     {
         var factory = Substitute.For<IHttpClientFactory>();
         factory.CreateClient("hermes").Returns(new HttpClient());
-        var options = Options.Create(new HermesOptions { BaseUrl = "", UseFake = false });
+        var options = Options.Create(new HermesOptions { BaseUrl = "" });
 
         var act = () => new HermesHttpClient(options, factory);
 

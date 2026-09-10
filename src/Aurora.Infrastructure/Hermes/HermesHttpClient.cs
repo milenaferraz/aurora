@@ -31,8 +31,7 @@ public class HermesHttpClient : IHermesClient
     {
         _opts = options.Value;
         if (string.IsNullOrWhiteSpace(_opts.BaseUrl))
-            throw new InvalidOperationException(
-                "Hermes:BaseUrl must be configured when Hermes:UseFake is false.");
+            throw new InvalidOperationException("Hermes:BaseUrl must be configured.");
 
         _http = factory.CreateClient("hermes");
 
