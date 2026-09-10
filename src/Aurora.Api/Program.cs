@@ -1,8 +1,7 @@
 using Aurora.Api.Middleware;
 using Aurora.Api.Validators;
 using Aurora.Application.Chat;
-using Aurora.Application.Interfaces;
-using Aurora.Infrastructure.Hermes;
+using Aurora.Infrastructure.Extensions;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Serilog;
@@ -24,10 +23,8 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod()));
 
-// Hermes
-var useFake = builder.Configuration.GetValue<bool>("Hermes:UseFake", defaultValue: true);
-if (useFake)
-    builder.Services.AddSingleton<IHermesClient, FakeHermesClient>();
+// Infrastructure (Hermes + mock providers)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Application services
 builder.Services.AddScoped<ChatService>();
