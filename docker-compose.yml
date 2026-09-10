@@ -41,5 +41,5 @@ services:
       - aurora-net
 
 networks:
-  aurora-net:
-    driver: bridge
+  aurora-shared:
+    external: true
