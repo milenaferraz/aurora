@@ -1,9 +1,13 @@
+using Aurora.Api.HealthChecks;
 using Aurora.Api.Middleware;
 using Aurora.Api.Validators;
 using Aurora.Application.Chat;
+using Aurora.Application.Dashboard;
 using Aurora.Infrastructure.Extensions;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +33,12 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Application services
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<ChatStreamingService>();
+builder.Services.AddScoped<DashboardService>();
+
+// Health checks
+builder.Services.AddHealthChecks()
+    .AddCheck("aurora-api", () => HealthCheckResult.Healthy())
+    .AddCheck<HermesHealthCheck>("hermes");
 
 // FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
@@ -54,6 +64,21 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (ctx, report) =>
+    {
+        ctx.Response.ContentType = "application/json";
+        var result = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            entries = report.Entries.ToDictionary(
+                e => e.Key,
+                e => new { status = e.Value.Status.ToString(), description = e.Value.Description })
+        });
+        await ctx.Response.WriteAsync(result);
+    }
+});
 app.Run();
 
 public partial class Program { }
