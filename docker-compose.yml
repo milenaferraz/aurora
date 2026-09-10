@@ -3,44 +3,45 @@ services:
     build:
       context: .
       dockerfile: src/Aurora.Api/Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - Hermes__BaseUrl=http://host.docker.internal:${HERMES_PORT}
-      - Hermes__ApiKey=${HERMES_API_KEY}
-      - Hermes__Model=${HERMES_MODEL:-hermes}
-      - AllowedOrigins__0=http://srv1969131.hstgr.cloud
-      - AllowedOrigins__1=https://srv1969131.hstgr.cloud
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+
     restart: unless-stopped
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      Hermes__BaseUrl: ${HERMES_BASE_URL}
+      Hermes__ApiKey: ${HERMES_API_KEY}
+      Hermes__Model: ${HERMES_MODEL:-hermes}
+
+      AllowedOrigins__0: ${AURORA_WEB_URL}
+
+    expose:
+      - "8080"
+
     networks:
       - aurora-net
-      - traefik_proxy
-    labels:
-      - "traefik.enable=false"
+
 
   aurora-web:
     build:
       context: src/aurora-web
       dockerfile: Dockerfile
+
       args:
-        - VITE_AURORA_API_URL=http://srv1969131.hstgr.cloud:8080
+        VITE_AURORA_API_URL: ${AURORA_API_URL}
+
     restart: unless-stopped
+
+    expose:
+      - "80"
+
+    depends_on:
+      - aurora-api
+
     networks:
       - aurora-net
-      - traefik_proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.aurora-web.rule=Host(`srv1969131.hstgr.cloud`)"
-      - "traefik.http.routers.aurora-web.entrypoints=websecure"
-      - "traefik.http.routers.aurora-web.tls=true"
-      - "traefik.http.routers.aurora-web.tls.certresolver=letsencrypt"
-      - "traefik.http.services.aurora-web.loadbalancer.server.port=80"
+
 
 networks:
   aurora-net:
     driver: bridge
-  traefik_proxy:
-    external: true
