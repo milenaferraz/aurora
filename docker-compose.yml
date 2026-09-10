@@ -8,11 +8,9 @@ services:
 
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-
       Hermes__BaseUrl: ${HERMES_BASE_URL}
       Hermes__ApiKey: ${HERMES_API_KEY}
       Hermes__Model: ${HERMES_MODEL:-hermes}
-
       AllowedOrigins__0: ${AURORA_WEB_URL}
 
     expose:
@@ -20,6 +18,8 @@ services:
 
     networks:
       - aurora-net
+      - aurora-shared
+
 
   aurora-web:
     build:
@@ -40,6 +40,10 @@ services:
     networks:
       - aurora-net
 
+
 networks:
+  aurora-net:
+    driver: bridge
+
   aurora-shared:
     external: true
