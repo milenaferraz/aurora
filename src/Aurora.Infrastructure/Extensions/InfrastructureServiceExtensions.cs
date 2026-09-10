@@ -23,7 +23,10 @@ public static class InfrastructureServiceExtensions
         services.Configure<HermesOptions>(configuration.GetSection("Hermes"));
         services.AddHttpClient("hermes");
 
-        services.AddSingleton<IHermesClient, FakeHermesClient>();
+        if (hermesOptions.UseFake)
+            services.AddSingleton<IHermesClient, FakeHermesClient>();
+        else
+            services.AddSingleton<IHermesClient, HermesHttpClient>();
 
         services.AddSingleton<ICalendarProvider, MockCalendarProvider>();
         services.AddSingleton<ITaskProvider, MockTaskProvider>();
