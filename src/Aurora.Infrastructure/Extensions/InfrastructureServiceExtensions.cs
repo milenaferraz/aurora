@@ -2,6 +2,8 @@ using System;
 using Aurora.Application.Interfaces;
 using Aurora.Infrastructure.Hermes;
 using Aurora.Infrastructure.Mocks;
+using Aurora.Infrastructure.Email;
+using Aurora.Infrastructure.Calendar;
 using Aurora.Infrastructure.Voice;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,9 +44,9 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IVoiceTranscriptionService, VoiceTranscriptionService>();
         services.AddSingleton<IVoiceSpeechService, VoiceSpeechService>();
 
-        services.AddSingleton<ICalendarProvider, MockCalendarProvider>();
+        services.AddSingleton<ICalendarProvider, CalendarProvider>();
         services.AddSingleton<ITaskProvider, MockTaskProvider>();
-        services.AddSingleton<IEmailProvider, MockEmailProvider>();
+        services.AddSingleton<IEmailProvider, EmailProvider>();
 
         return services;
     }
