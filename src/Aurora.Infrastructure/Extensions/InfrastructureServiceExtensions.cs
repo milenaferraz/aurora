@@ -1,5 +1,9 @@
 using System;
 using Aurora.Application.Interfaces;
+using Aurora.Infrastructure.Knowledge;
+using Aurora.Domain.Knowledge;
+using Aurora.Contracts.Knowledge;
+using Aurora.Application.Knowledge;
 using Aurora.Infrastructure.Hermes;
 using Aurora.Infrastructure.Mocks;
 using Aurora.Infrastructure.Email;
@@ -49,6 +53,13 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IMemoryProvider, MemoryProvider>();
         services.AddSingleton<ITaskProvider, MockTaskProvider>();
         services.AddSingleton<IEmailProvider, EmailProvider>();
+
+        
+    services.Configure<VaultOptions>(configuration.GetSection(VaultOptions.SectionName));
+    services.AddSingleton<IMemoryService, KnowledgeService>();
+    services.AddSingleton<IVaultRepository, VaultRepository>();
+    services.AddSingleton<IMarkdownGenerator, MarkdownGenerator>();
+    services.AddSingleton<ISlugGenerator, SlugGenerator>();
 
         return services;
     }
