@@ -10,6 +10,7 @@ export const useChatStore = defineStore('chat', () => {
   const messages = ref<ChatMessage[]>([])
   const streaming = ref(false)
   const abortController = ref<AbortController | null>(null)
+  const conversationId = ref<string | null>(null)
 
   function addMessage(message: ChatMessage) {
     messages.value.push(message)
@@ -36,5 +37,20 @@ export const useChatStore = defineStore('chat', () => {
     abortController.value = null
   }
 
-  return { messages, streaming, abortController, addMessage, appendDelta, setStreaming, setAbortController, clearAbort }
+  function setConversationId(value: string | null) {
+    conversationId.value = value
+  }
+
+  return {
+    messages,
+    streaming,
+    abortController,
+    conversationId,
+    addMessage,
+    appendDelta,
+    setStreaming,
+    setAbortController,
+    clearAbort,
+    setConversationId,
+  }
 })

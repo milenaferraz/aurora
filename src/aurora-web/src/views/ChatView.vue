@@ -1,17 +1,35 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useElevenLabsConversation } from '../composables/useElevenLabsConversation'
+import { extractAuroraCommand } from '../composables/voiceWakeWord'
 import AuroraCore from '../components/aurora/AuroraCore.vue'
 import { useAuroraStore } from '../stores/aurora.store'
+import { useChat } from '../composables/useChat'
+import ChatMessages from '../components/chat/ChatMessages.vue'
 
 const auroraStore = useAuroraStore()
-const {
-  start,
-  connecting,
-  lastError,
-  needsGesture,
-  isConfigured,
-} = useElevenLabsConversation({ autoStart: true })
+const { sendMessage } = useChat()
+const pendingVoiceCommand = ref(false)
+const lastSpokenCommand = ref('')
+
+const { start, connecting, lastError, needsGesture, isConfigured } = useElevenLabsConversation({
+  autoStart: true,
+  onTranscript: (transcript) => {
+    if (transcript.role !== 'user') return
+
+    const match = extractAuroraCommand(transcript.content)
+    if (!match.activated || !match.command) return
+
+    const normalized = match.command.toLowerCase()
+    if (normalized === lastSpokenCommand.value.toLowerCase()) return
+
+    lastSpokenCommand.value = match.command
+    pendingVoiceCommand.value = true
+    void sendMessage(match.command, { includeUserMessage: false }).finally(() => {
+      pendingVoiceCommand.value = false
+    })
+  },
+})
 
 const statusLabel = computed(() => {
   if (connecting.value) return 'CONECTANDO'
@@ -22,6 +40,10 @@ const statusLabel = computed(() => {
       return 'FALANDO'
     case 'error':
       return 'OFFLINE'
+    case 'thinking':
+      return 'PROCESSANDO'
+    case 'working':
+      return 'EXECUTANDO'
     default:
       return 'ONLINE'
   }
@@ -34,9 +56,10 @@ const prompt = computed(() => {
   if (needsGesture.value || lastError.value) {
     return lastError.value ?? 'Toque em qualquer lugar para começar'
   }
+  if (pendingVoiceCommand.value) return 'Aurora ouviu o comando e está chamando a API...'
   if (connecting.value) return 'Conectando...'
-  if (auroraStore.state === 'speaking') return 'Aurora está falando'
-  if (auroraStore.state === 'listening') return 'Pode falar'
+  if (auroraStore.state === 'speaking') return 'Aurora está respondendo'
+  if (auroraStore.state === 'listening') return 'Diga “Aurora” seguido do comando'
   return 'Inteligência em movimento'
 })
 
@@ -126,8 +149,8 @@ onUnmounted(() => {
 
     <aside class="hud hud-right" aria-hidden="true">
       <span class="hud-line">AURORA SYSTEM</span>
-      <span class="hud-line">CORE ONLINE</span>
       <span class="hud-line">VOICE READY</span>
+      <span class="hud-line">HERMES ROUTE</span>
     </aside>
 
     <main class="aurora-main">
@@ -137,6 +160,10 @@ onUnmounted(() => {
       <p class="prompt" :class="{ alert: !isConfigured || needsGesture || lastError }">
         {{ prompt }}
       </p>
+
+      <section class="chat-panel" aria-label="Histórico da conversa">
+        <ChatMessages />
+      </section>
     </main>
   </div>
 </template>
@@ -241,7 +268,7 @@ onUnmounted(() => {
   gap: 14px;
 }
 
-.hud-left  { left: 36px; }
+.hud-left { left: 36px; }
 .hud-right { right: 36px; align-items: flex-end; }
 
 .hud-line {
@@ -273,15 +300,26 @@ onUnmounted(() => {
   font-size: 13px;
   color: rgba(100, 116, 139, 0.55);
   letter-spacing: 0.06em;
-  padding-bottom: 36px;
+  padding-bottom: 20px;
   margin: 0;
   flex-shrink: 0;
   text-align: center;
-  max-width: 480px;
+  max-width: 560px;
 }
 
 .prompt.alert {
   color: rgba(248, 113, 113, 0.85);
+}
+
+.chat-panel {
+  width: min(920px, calc(100vw - 48px));
+  margin: 0 24px 24px;
+  max-height: 180px;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.10);
+  background: rgba(8, 15, 30, 0.45);
+  backdrop-filter: blur(12px);
 }
 
 @keyframes dot-pulse {
@@ -293,5 +331,9 @@ onUnmounted(() => {
   .hud { display: none; }
   .aurora-header { padding: 16px 20px; }
   .logo-text { font-size: 16px; letter-spacing: 0.24em; }
+  .chat-panel {
+    width: calc(100vw - 24px);
+    margin: 0 12px 12px;
+  }
 }
 </style>

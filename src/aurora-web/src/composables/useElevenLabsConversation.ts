@@ -8,6 +8,16 @@ type VoiceSession = {
   sendUserMessage: (text: string) => void
 }
 
+type TranscriptMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+type UseElevenLabsConversationOptions = {
+  autoStart?: boolean
+  onTranscript?: (message: TranscriptMessage) => void
+}
+
 function readAgentId(): string {
   return (import.meta.env.VITE_ELEVENLABS_AGENT_ID as string | undefined)?.trim() ?? ''
 }
@@ -19,7 +29,7 @@ function isPermissionDenied(error: unknown): boolean {
   return error instanceof Error && /permission|notallowed|denied/i.test(error.message)
 }
 
-export function useElevenLabsConversation(options: { autoStart?: boolean } = {}) {
+export function useElevenLabsConversation(options: UseElevenLabsConversationOptions = {}) {
   const auroraStore = useAuroraStore()
   const chatStore = useChatStore()
 
@@ -61,7 +71,6 @@ export function useElevenLabsConversation(options: { autoStart?: boolean } = {})
           connecting.value = false
           session.value = null
           if (disposed.value || auroraStore.state === 'error') return
-          void start()
         },
         onError: (message) => {
           lastError.value = message || 'Falha na conversa de voz'
@@ -73,10 +82,12 @@ export function useElevenLabsConversation(options: { autoStart?: boolean } = {})
         onMessage: ({ message, role }) => {
           const content = message.trim()
           if (!content) return
-          chatStore.addMessage({
+          const transcript: TranscriptMessage = {
             role: role === 'user' ? 'user' : 'assistant',
             content,
-          })
+          }
+          chatStore.addMessage(transcript)
+          options.onTranscript?.(transcript)
         },
       })
 
