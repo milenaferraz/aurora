@@ -1,0 +1,1 @@
+Task ID: e52b3bc1-ee1e-4935-8dd8-7d368c2b065d\nStatus: todo\nDescription: ◻ e52b3bc1-ee1e-4935-8dd8-7d368c2b065d  todo      default              [aurora]  Implementar roteamento inteligente de modelos\nImplementation started at: Fri Sep 11 23:45:50 UTC 2026\n

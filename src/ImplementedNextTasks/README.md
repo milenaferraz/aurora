@@ -1,0 +1,1 @@
+# Tasks In Progress / Next to Implement\n\nThis directory contains placeholder files for tasks that are ready or todo in the Kanban board, indicating that work has started on them.\n

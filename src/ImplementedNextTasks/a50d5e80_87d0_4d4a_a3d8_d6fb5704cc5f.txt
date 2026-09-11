@@ -1,0 +1,1 @@
+Task ID: a50d5e80-87d0-4d4a-a3d8-d6fb5704cc5f\nStatus: todo\nDescription: ◻ a50d5e80-87d0-4d4a-a3d8-d6fb5704cc5f  todo      default              [aurora]  Criar modo desenvolvedor\nImplementation started at: Fri Sep 11 23:45:50 UTC 2026\n

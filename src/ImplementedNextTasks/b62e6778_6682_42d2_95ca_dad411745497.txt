@@ -1,0 +1,1 @@
+Task ID: b62e6778-6682-42d2-95ca-dad411745497\nStatus: todo\nDescription: ◻ b62e6778-6682-42d2-95ca-dad411745497  todo      default              [aurora]  Criar dashboard principal da Aurora\nImplementation started at: Fri Sep 11 23:45:50 UTC 2026\n

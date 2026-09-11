@@ -1,0 +1,1 @@
+Task ID: a39855c0-ecc8-4b8e-bd47-cece9c585d40\nStatus: todo\nDescription: ◻ a39855c0-ecc8-4b8e-bd47-cece9c585d40  todo      default              [aurora]  Criar sistema de notificações\nImplementation started at: Fri Sep 11 23:45:50 UTC 2026\n

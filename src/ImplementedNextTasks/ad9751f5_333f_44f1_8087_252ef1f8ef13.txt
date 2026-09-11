@@ -1,0 +1,1 @@
+Task ID: ad9751f5-333f-44f1-8087-252ef1f8ef13\nStatus: todo\nDescription: ◻ ad9751f5-333f-44f1-8087-252ef1f8ef13  todo      default              [aurora]  Adicionar LLM local para o Hermes\nImplementation started at: Fri Sep 11 23:45:50 UTC 2026\n
