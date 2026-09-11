@@ -16,20 +16,14 @@ public static class InfrastructureServiceExtensions
     {
         var hermesOptions = configuration.GetSection("Hermes").Get<HermesOptions>()
             ?? new HermesOptions();
-        var useFake = configuration.GetValue("Hermes:UseFake", hermesOptions.UseFake);
+
+        if (string.IsNullOrWhiteSpace(hermesOptions.BaseUrl))
+            throw new InvalidOperationException("Hermes:BaseUrl must be configured.");
 
         services.Configure<HermesOptions>(configuration.GetSection("Hermes"));
         services.AddHttpClient("hermes");
         services.AddHttpClient("elevenlabs");
-
-        if (useFake || string.IsNullOrWhiteSpace(hermesOptions.BaseUrl))
-        {
-            services.AddSingleton<IHermesClient, FakeHermesClient>();
-        }
-        else
-        {
-            services.AddSingleton<IHermesClient, HermesHttpClient>();
-        }
+        services.AddSingleton<IHermesClient, HermesHttpClient>();
 
         services.AddSingleton<IVoiceTranscriptionService, VoiceTranscriptionService>();
         services.AddSingleton<IVoiceSpeechService, VoiceSpeechService>();
