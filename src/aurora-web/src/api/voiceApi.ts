@@ -12,9 +12,7 @@ export const voiceApi = {
   async transcribe(audio: Blob): Promise<VoiceTranscribeResponse> {
     const formData = new FormData()
     formData.append('audio', audio, 'recording.webm')
-    const response = await auroraApi.post<VoiceTranscribeResponse>('/api/voice/transcribe', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const response = await auroraApi.post<VoiceTranscribeResponse>('/api/voice/transcribe', formData)
     return response.data
   },
 

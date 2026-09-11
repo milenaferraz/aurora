@@ -258,36 +258,37 @@ onUnmounted(() => {
 .hud-line {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
-  letter-spacing: 0.22em;
-  color: rgba(100, 116, 139, 0.48);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(99, 102, 241, 0.38);
 }
 
 .aurora-main {
   position: relative;
   z-index: 10;
   flex: 1;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px 24px 28px;
-  min-height: 0;
 }
 
 .core-section {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  flex: 1;
 }
 
 .prompt {
-  margin: 24px 0 14px;
   font-size: 13px;
-  color: rgba(100, 116, 139, 0.62);
-  letter-spacing: 0.05em;
+  color: rgba(100, 116, 139, 0.55);
+  letter-spacing: 0.06em;
+  padding-bottom: 20px;
+  margin: 0;
+  flex-shrink: 0;
   text-align: center;
-  max-width: 660px;
+  max-width: 560px;
 }
 
 .prompt.alert {
@@ -295,33 +296,23 @@ onUnmounted(() => {
 }
 
 .voice-control {
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(168, 85, 247, 0.16));
-  color: rgba(226, 232, 240, 0.96);
-  border-radius: 9999px;
-  padding: 12px 22px;
-  margin-bottom: 18px;
-  letter-spacing: 0.08em;
-  font-size: 12px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 999px;
+  padding: 14px 24px;
+  background: rgba(8, 15, 30, 0.72);
+  color: rgba(226, 232, 240, 0.95);
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-  box-shadow: 0 0 28px rgba(56, 189, 248, 0.08);
-}
-
-.voice-control:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 34px rgba(168, 85, 247, 0.14);
 }
 
 .voice-control.active {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.30), rgba(236, 72, 153, 0.28));
-  box-shadow: 0 0 40px rgba(236, 72, 153, 0.18);
+  border-color: rgba(56, 189, 248, 0.35);
 }
 
-.voice-control:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.voice-control.busy {
+  opacity: 0.7;
 }
 
 .chat-panel {
@@ -340,7 +331,7 @@ onUnmounted(() => {
   50% { opacity: 0.35; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .hud { display: none; }
   .aurora-header { padding: 16px 20px; }
   .logo-text { font-size: 16px; letter-spacing: 0.24em; }
