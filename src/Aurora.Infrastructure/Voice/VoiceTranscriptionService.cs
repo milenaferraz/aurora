@@ -6,25 +6,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aurora.Application.Interfaces;
 using Whisper.net;
+using Whisper.net.Ggml;
 
 namespace Aurora.Infrastructure.Voice;
 
 public sealed class VoiceTranscriptionService : IVoiceTranscriptionService
 {
+    private static readonly SemaphoreSlim ModelDownloadLock = new(1, 1);
+    private static string? _cachedModelPath;
+
     private readonly Lazy<WhisperFactory> _factory;
     private readonly string _modelPath;
+    private readonly GgmlType _modelType;
 
     public VoiceTranscriptionService()
     {
         _modelPath = Environment.GetEnvironmentVariable("WHISPER_MODEL_PATH")?.Trim() ?? string.Empty;
+        _modelType = ParseModelType(Environment.GetEnvironmentVariable("WHISPER_MODEL_TYPE"));
         _factory = new Lazy<WhisperFactory>(() =>
         {
-            if (string.IsNullOrWhiteSpace(_modelPath))
-                throw new InvalidOperationException("WHISPER_MODEL_PATH is not configured.");
-            if (!File.Exists(_modelPath))
-                throw new FileNotFoundException($"Whisper model not found at '{_modelPath}'.", _modelPath);
-
-            return WhisperFactory.FromPath(_modelPath);
+            var path = ResolveModelPathAsync(CancellationToken.None).GetAwaiter().GetResult();
+            return WhisperFactory.FromPath(path);
         });
     }
 
@@ -64,6 +66,50 @@ public sealed class VoiceTranscriptionService : IVoiceTranscriptionService
             SafeDelete(tempInput);
             SafeDelete(tempWav);
         }
+    }
+
+
+    private async Task<string> ResolveModelPathAsync(CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(_modelPath))
+        {
+            if (!File.Exists(_modelPath))
+                throw new FileNotFoundException($"Whisper model not found at '{_modelPath}'.", _modelPath);
+            return _modelPath;
+        }
+
+        if (_cachedModelPath is not null && File.Exists(_cachedModelPath))
+            return _cachedModelPath;
+
+        await ModelDownloadLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_cachedModelPath is not null && File.Exists(_cachedModelPath))
+                return _cachedModelPath;
+
+            var modelName = $"aurora-whisper-{_modelType.ToString().ToLowerInvariant()}.bin";
+            var modelPath = Path.Combine(Path.GetTempPath(), modelName);
+            if (!File.Exists(modelPath))
+            {
+                using var modelStream = await WhisperGgmlDownloader.Default.GetGgmlModelAsync(_modelType, cancellationToken: cancellationToken);
+                await using var fileWriter = File.OpenWrite(modelPath);
+                await modelStream.CopyToAsync(fileWriter, cancellationToken);
+            }
+
+            _cachedModelPath = modelPath;
+            return modelPath;
+        }
+        finally
+        {
+            ModelDownloadLock.Release();
+        }
+    }
+
+    private static GgmlType ParseModelType(string? value)
+    {
+        return Enum.TryParse<GgmlType>(value, ignoreCase: true, out var parsed)
+            ? parsed
+            : GgmlType.Base;
     }
 
     private static string GuessExtension(string? contentType) => contentType?.ToLowerInvariant() switch
