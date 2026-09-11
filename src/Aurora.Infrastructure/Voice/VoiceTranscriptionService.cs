@@ -1,7 +1,9 @@
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
-using Aurora.Application.Interfaces;
-using Whisper.net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Aurora.Infrastructure.Voice;
 
