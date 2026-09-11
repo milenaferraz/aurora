@@ -32,6 +32,13 @@ const buttonLabel = computed(() => {
   return 'Segure para falar'
 })
 
+const supportHint = computed(() => {
+  if (recording.value) return 'Você está gravando. Solte o botão para enviar o áudio.'
+  if (processing.value) return 'Estou convertendo o áudio e consultando a Aurora.'
+  if (speaking.value) return 'A resposta da Aurora está sendo reproduzida em áudio.'
+  return 'Dica: mantenha o botão pressionado enquanto fala.'
+})
+
 function drawStars() {
   const canvas = starCanvas.value
   if (!canvas) return
@@ -129,6 +136,8 @@ onUnmounted(() => {
       <p class="prompt" :class="{ alert: lastError }">
         {{ prompt }}
       </p>
+
+      <p class="support-hint" aria-live="polite">{{ supportHint }}</p>
 
       <button
         class="voice-control"
@@ -293,6 +302,14 @@ onUnmounted(() => {
 
 .prompt.alert {
   color: rgba(248, 113, 113, 0.85);
+}
+
+
+.support-hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.7);
+  text-align: center;
 }
 
 .voice-control {
