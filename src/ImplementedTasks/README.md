@@ -1,0 +1,1 @@
+# Implemented Tasks\n\nThis directory contains placeholder files for tasks marked as done in the Kanban board.\n

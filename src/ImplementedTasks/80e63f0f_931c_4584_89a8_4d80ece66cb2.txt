@@ -1,0 +1,1 @@
+Task ID: 80e63f0f-931c-4584-89a8-4d80ece66cb2\nDescription: Integrar o núcleo da Aurora com estados de voz e áudio\nImplemented at: Fri Sep 11 23:21:33 UTC 2026\n
