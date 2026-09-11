@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
 
       args:
-        VITE_AURORA_API_URL: ${AURORA_API_URL}
+        VITE_AURORA_API_URL: ${AURORA_API_URL:-https://aurora-api2.2.25.217.9.sslip.io}
 
     restart: unless-stopped
 
