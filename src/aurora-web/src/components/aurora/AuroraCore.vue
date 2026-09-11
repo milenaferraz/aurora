@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-export type AuroraState = 'idle' | 'listening' | 'thinking' | 'working' | 'speaking' | 'error'
+export type AuroraState = 'idle' | 'listening' | 'processing' | 'thinking' | 'working' | 'speaking' | 'error'
 
 const props = defineProps<{
   state: AuroraState
@@ -17,6 +17,7 @@ const stateLabel = computed(() => {
   const map: Record<AuroraState, string> = {
     idle: 'A U R O R A',
     listening: 'Estou ouvindo...',
+    processing: 'Processando...',
     thinking: 'Pensando...',
     working: 'Executando...',
     speaking: 'Aurora está falando',
@@ -249,6 +250,25 @@ const showSub = computed(() => props.state === 'idle' && !props.compact)
 }
 .state-listening .outer-orbit {
   border-color: rgba(168, 85, 247, 0.30);
+}
+
+/* ── State: processing ────────────────────────── */
+.state-processing .outer-orbit {
+  animation: aurora-orbit 11s linear infinite;
+  border-color: rgba(99, 102, 241, 0.40);
+}
+.state-processing .energy-ring-svg {
+  animation: aurora-orbit-reverse 5s linear infinite;
+}
+.state-processing .core-center {
+  animation: aurora-breathe 2.2s ease-in-out infinite;
+  box-shadow:
+    0 0 50px rgba(37, 99, 235, 0.28),
+    0 0 100px rgba(124, 58, 237, 0.18);
+}
+.state-processing .neural-ribbon {
+  animation: aurora-neural 4s ease-in-out infinite;
+  border-color: rgba(99, 102, 241, 0.40);
 }
 
 /* ── State: thinking ──────────────────────────── */

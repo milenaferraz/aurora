@@ -1,76 +1,36 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useElevenLabsConversation } from '../composables/useElevenLabsConversation'
-import { extractAuroraCommand } from '../composables/voiceWakeWord'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import AuroraCore from '../components/aurora/AuroraCore.vue'
-import { useAuroraStore } from '../stores/aurora.store'
-import { useChat } from '../composables/useChat'
 import ChatMessages from '../components/chat/ChatMessages.vue'
+import { useAuroraStore } from '../stores/aurora.store'
+import { useVoiceFlow } from '../composables/useVoiceFlow'
 
 const auroraStore = useAuroraStore()
-const { sendMessage } = useChat()
-const pendingVoiceCommand = ref(false)
-const lastSpokenCommand = ref('')
-
-const { start, connecting, lastError, needsGesture, isConfigured } = useElevenLabsConversation({
-  autoStart: true,
-  onTranscript: (transcript) => {
-    if (transcript.role !== 'user') return
-
-    const match = extractAuroraCommand(transcript.content)
-    if (!match.activated || !match.command) return
-
-    const normalized = match.command.toLowerCase()
-    if (normalized === lastSpokenCommand.value.toLowerCase()) return
-
-    lastSpokenCommand.value = match.command
-    pendingVoiceCommand.value = true
-    void sendMessage(match.command, { includeUserMessage: false }).finally(() => {
-      pendingVoiceCommand.value = false
-    })
-  },
-})
+const { startRecording, stopRecording, recording, processing, speaking, isBusy, lastError } = useVoiceFlow()
+const starCanvas = ref<HTMLCanvasElement | null>(null)
 
 const statusLabel = computed(() => {
-  if (connecting.value) return 'CONECTANDO'
-  switch (auroraStore.state) {
-    case 'listening':
-      return 'OUVINDO'
-    case 'speaking':
-      return 'FALANDO'
-    case 'error':
-      return 'OFFLINE'
-    case 'thinking':
-      return 'PROCESSANDO'
-    case 'working':
-      return 'EXECUTANDO'
-    default:
-      return 'ONLINE'
-  }
+  if (recording.value) return 'OUVINDO'
+  if (processing.value) return 'PROCESSANDO'
+  if (speaking.value) return 'FALANDO'
+  if (auroraStore.state === 'error') return 'OFFLINE'
+  return 'ONLINE'
 })
 
 const prompt = computed(() => {
-  if (!isConfigured.value) {
-    return 'Configure VITE_ELEVENLABS_AGENT_ID para falar com a Aurora.'
-  }
-  if (needsGesture.value || lastError.value) {
-    return lastError.value ?? 'Toque em qualquer lugar para começar'
-  }
-  if (pendingVoiceCommand.value) return 'Aurora ouviu o comando e está chamando a API...'
-  if (connecting.value) return 'Conectando...'
-  if (auroraStore.state === 'speaking') return 'Aurora está respondendo'
-  if (auroraStore.state === 'listening') return 'Diga “Aurora” seguido do comando'
-  return 'Inteligência em movimento'
+  if (lastError.value) return lastError.value
+  if (recording.value) return 'Solte o botão para enviar.'
+  if (processing.value) return 'Convertendo áudio e consultando a Aurora...'
+  if (speaking.value) return 'Aurora está respondendo em áudio.'
+  return 'Segure o botão e fale com a Aurora.'
 })
 
-function onPagePointer() {
-  if (!isConfigured.value) return
-  if (needsGesture.value || auroraStore.state === 'error') {
-    void start()
-  }
-}
-
-const starCanvas = ref<HTMLCanvasElement | null>(null)
+const buttonLabel = computed(() => {
+  if (recording.value) return 'Soltar para enviar'
+  if (processing.value) return 'Processando...'
+  if (speaking.value) return 'Falando...'
+  return 'Segure para falar'
+})
 
 function drawStars() {
   const canvas = starCanvas.value
@@ -94,6 +54,14 @@ function drawStars() {
   }
 }
 
+function onVoicePointerDown() {
+  void startRecording()
+}
+
+function onVoicePointerUp() {
+  void stopRecording()
+}
+
 onMounted(() => {
   drawStars()
   window.addEventListener('resize', drawStars)
@@ -105,7 +73,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="aurora-page" @pointerdown="onPagePointer">
+  <div class="aurora-page">
     <div class="bg-deep" aria-hidden="true" />
     <div class="bg-nebula" aria-hidden="true" />
     <canvas ref="starCanvas" class="star-canvas" aria-hidden="true" />
@@ -150,16 +118,32 @@ onUnmounted(() => {
     <aside class="hud hud-right" aria-hidden="true">
       <span class="hud-line">AURORA SYSTEM</span>
       <span class="hud-line">VOICE READY</span>
-      <span class="hud-line">HERMES ROUTE</span>
+      <span class="hud-line">API ROUTE</span>
     </aside>
 
     <main class="aurora-main">
       <div class="core-section">
         <AuroraCore :state="auroraStore.state" />
       </div>
-      <p class="prompt" :class="{ alert: !isConfigured || needsGesture || lastError }">
+
+      <p class="prompt" :class="{ alert: lastError }">
         {{ prompt }}
       </p>
+
+      <button
+        class="voice-control"
+        :class="{ active: recording, busy: isBusy && !recording }"
+        type="button"
+        :disabled="processing || speaking"
+        @pointerdown="onVoicePointerDown"
+        @pointerup="onVoicePointerUp"
+        @pointercancel="onVoicePointerUp"
+        @pointerleave="onVoicePointerUp"
+        @touchstart.prevent="onVoicePointerDown"
+        @touchend.prevent="onVoicePointerUp"
+      >
+        {{ buttonLabel }}
+      </button>
 
       <section class="chat-panel" aria-label="Histórico da conversa">
         <ChatMessages />
@@ -259,10 +243,10 @@ onUnmounted(() => {
 }
 
 .hud {
-  position: fixed;
+  position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 15;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -273,42 +257,71 @@ onUnmounted(() => {
 
 .hud-line {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(99, 102, 241, 0.38);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: rgba(100, 116, 139, 0.48);
 }
 
 .aurora-main {
   position: relative;
   z-index: 10;
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 16px 24px 28px;
+  min-height: 0;
 }
 
 .core-section {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  flex-shrink: 0;
 }
 
 .prompt {
+  margin: 24px 0 14px;
   font-size: 13px;
-  color: rgba(100, 116, 139, 0.55);
-  letter-spacing: 0.06em;
-  padding-bottom: 20px;
-  margin: 0;
-  flex-shrink: 0;
+  color: rgba(100, 116, 139, 0.62);
+  letter-spacing: 0.05em;
   text-align: center;
-  max-width: 560px;
+  max-width: 660px;
 }
 
 .prompt.alert {
   color: rgba(248, 113, 113, 0.85);
+}
+
+.voice-control {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(168, 85, 247, 0.16));
+  color: rgba(226, 232, 240, 0.96);
+  border-radius: 9999px;
+  padding: 12px 22px;
+  margin-bottom: 18px;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  box-shadow: 0 0 28px rgba(56, 189, 248, 0.08);
+}
+
+.voice-control:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 34px rgba(168, 85, 247, 0.14);
+}
+
+.voice-control.active {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.30), rgba(236, 72, 153, 0.28));
+  box-shadow: 0 0 40px rgba(236, 72, 153, 0.18);
+}
+
+.voice-control:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .chat-panel {
@@ -327,7 +340,7 @@ onUnmounted(() => {
   50% { opacity: 0.35; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .hud { display: none; }
   .aurora-header { padding: 16px 20px; }
   .logo-text { font-size: 16px; letter-spacing: 0.24em; }

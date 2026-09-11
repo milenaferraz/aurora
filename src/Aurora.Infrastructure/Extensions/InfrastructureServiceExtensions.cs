@@ -2,6 +2,7 @@ using System;
 using Aurora.Application.Interfaces;
 using Aurora.Infrastructure.Hermes;
 using Aurora.Infrastructure.Mocks;
+using Aurora.Infrastructure.Voice;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,7 +22,10 @@ public static class InfrastructureServiceExtensions
 
         services.Configure<HermesOptions>(configuration.GetSection("Hermes"));
         services.AddHttpClient("hermes");
+        services.AddHttpClient("elevenlabs");
         services.AddSingleton<IHermesClient, HermesHttpClient>();
+        services.AddSingleton<IVoiceTranscriptionService, VoiceTranscriptionService>();
+        services.AddSingleton<IVoiceSpeechService, VoiceSpeechService>();
 
         services.AddSingleton<ICalendarProvider, MockCalendarProvider>();
         services.AddSingleton<ITaskProvider, MockTaskProvider>();
