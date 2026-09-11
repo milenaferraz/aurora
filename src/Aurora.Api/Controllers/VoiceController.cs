@@ -19,6 +19,12 @@ public class VoiceController : ControllerBase
         _speechService = speechService;
     }
 
+    [HttpOptions("transcribe")]
+    public IActionResult TranscribeOptions()
+    {
+        return NoContent();
+    }
+
     [HttpPost("transcribe")]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<VoiceTranscribeResponse>> Transcribe(
@@ -31,6 +37,12 @@ public class VoiceController : ControllerBase
         await using var stream = audio.OpenReadStream();
         var text = await _transcriptionService.TranscribeAsync(stream, audio.ContentType, cancellationToken);
         return Ok(new VoiceTranscribeResponse(text));
+    }
+
+    [HttpOptions("speak")]
+    public IActionResult SpeakOptions()
+    {
+        return NoContent();
     }
 
     [HttpPost("speak")]

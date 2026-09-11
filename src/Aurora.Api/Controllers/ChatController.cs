@@ -28,6 +28,18 @@ public class ChatController : ControllerBase
         return Ok(response);
     }
 
+    [HttpOptions]
+    public IActionResult Options()
+    {
+        return NoContent();
+    }
+
+    [HttpOptions("stream")]
+    public IActionResult StreamOptions()
+    {
+        return NoContent();
+    }
+
     [HttpPost("stream")]
     public async Task Stream([FromBody] ChatRequest request, CancellationToken cancellationToken)
     {

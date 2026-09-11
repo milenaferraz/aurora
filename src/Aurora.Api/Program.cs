@@ -63,6 +63,7 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseRouting();
 app.UseCors();
 
 if (app.Environment.IsDevelopment())
