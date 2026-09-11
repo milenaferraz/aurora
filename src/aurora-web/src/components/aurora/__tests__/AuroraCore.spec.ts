@@ -14,6 +14,6 @@ describe('AuroraCore', () => {
 
   it('applies state class based on prop', () => {
     const wrapper = mount(AuroraCore, { props: { state: 'thinking' } })
-    expect(wrapper.find('.aurora-core').classes()).toContain('aurora-thinking')
+    expect(wrapper.find('.core-root').classes()).toContain('state-thinking')
   })
 })

@@ -31,7 +31,7 @@ function handleSubmit() {
         @focus="focused = true"
         @blur="focused = false"
       />
-      <VoiceButton />
+        <VoiceButton />
     </div>
   </div>
 </template>

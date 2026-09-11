@@ -1,31 +1,66 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuroraStore } from '../../stores/aurora.store'
+
+const props = withDefaults(
+  defineProps<{
+    voiceAgent?: boolean
+    connected?: boolean
+    connecting?: boolean
+    disabled?: boolean
+  }>(),
+  {
+    voiceAgent: false,
+    connected: false,
+    connecting: false,
+    disabled: false,
+  },
+)
+
+const emit = defineEmits<{
+  toggle: []
+}>()
 
 const auroraStore = useAuroraStore()
 
+const isActive = computed(
+  () => props.connected || props.connecting || auroraStore.state === 'listening',
+)
+
 function onMouseDown() {
+  if (props.voiceAgent || props.disabled) return
   auroraStore.setState('listening')
 }
 
 function onMouseUp() {
+  if (props.voiceAgent || props.disabled) return
   if (auroraStore.state === 'listening') {
     auroraStore.setState('idle')
   }
+}
+
+function onClick() {
+  if (!props.voiceAgent || props.disabled) return
+  emit('toggle')
 }
 </script>
 
 <template>
   <button
     class="voice-btn"
-    :class="{ listening: auroraStore.state === 'listening' }"
+    :class="{ listening: isActive }"
+    type="button"
+    :disabled="disabled"
+    :aria-pressed="voiceAgent ? connected : undefined"
+    :aria-label="connected ? 'Encerrar conversa com Aurora' : 'Falar com Aurora'"
+    @click="onClick"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
     @mouseleave="onMouseUp"
     @touchstart.prevent="onMouseDown"
     @touchend.prevent="onMouseUp"
-    aria-label="Falar com Aurora"
   >
-    <span v-if="auroraStore.state === 'listening'" class="outer-ring" aria-hidden="true" />
+    <span v-if="isActive" class="outer-ring" aria-hidden="true" />
     <svg viewBox="0 0 24 24" fill="currentColor" class="mic-icon" aria-hidden="true">
       <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 8a1 1 0 0 1 1 1 6 6 0 0 0 12 0 1 1 0 1 1 2 0 8 8 0 0 1-7 7.938V21h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.062A8 8 0 0 1 4 12a1 1 0 0 1 1-1z"/>
     </svg>
@@ -63,6 +98,12 @@ function onMouseUp() {
 .voice-btn:focus-visible {
   outline: 2px solid rgba(168, 85, 247, 0.6);
   outline-offset: 3px;
+}
+
+.voice-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .voice-btn.listening {

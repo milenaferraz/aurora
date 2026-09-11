@@ -1,19 +1,52 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useChat } from '../composables/useChat'
-import ChatMessages from '../components/chat/ChatMessages.vue'
-import ChatInput from '../components/chat/ChatInput.vue'
+import { useElevenLabsConversation } from '../composables/useElevenLabsConversation'
 import AuroraCore from '../components/aurora/AuroraCore.vue'
 import { useAuroraStore } from '../stores/aurora.store'
-import { useChatStore } from '../stores/chat.store'
 
 const auroraStore = useAuroraStore()
-const chatStore = useChatStore()
-const { sendMessage } = useChat()
+const {
+  start,
+  connecting,
+  lastError,
+  needsGesture,
+  isConfigured,
+} = useElevenLabsConversation({ autoStart: true })
 
-const hasMessages = computed(() => chatStore.messages.length > 0)
+const statusLabel = computed(() => {
+  if (connecting.value) return 'CONECTANDO'
+  switch (auroraStore.state) {
+    case 'listening':
+      return 'OUVINDO'
+    case 'speaking':
+      return 'FALANDO'
+    case 'error':
+      return 'OFFLINE'
+    default:
+      return 'ONLINE'
+  }
+})
 
-/* Star field canvas */
+const prompt = computed(() => {
+  if (!isConfigured.value) {
+    return 'Configure VITE_ELEVENLABS_AGENT_ID para falar com a Aurora.'
+  }
+  if (needsGesture.value || lastError.value) {
+    return lastError.value ?? 'Toque em qualquer lugar para começar'
+  }
+  if (connecting.value) return 'Conectando...'
+  if (auroraStore.state === 'speaking') return 'Aurora está falando'
+  if (auroraStore.state === 'listening') return 'Pode falar'
+  return 'Inteligência em movimento'
+})
+
+function onPagePointer() {
+  if (!isConfigured.value) return
+  if (needsGesture.value || auroraStore.state === 'error') {
+    void start()
+  }
+}
+
 const starCanvas = ref<HTMLCanvasElement | null>(null)
 
 function drawStars() {
@@ -49,14 +82,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="chat-page">
-    <!-- Background layers -->
+  <div class="aurora-page" @pointerdown="onPagePointer">
     <div class="bg-deep" aria-hidden="true" />
     <div class="bg-nebula" aria-hidden="true" />
     <canvas ref="starCanvas" class="star-canvas" aria-hidden="true" />
 
-    <!-- Header -->
-    <header class="chat-header">
+    <header class="aurora-header">
       <div class="logo" aria-label="Aurora">
         <svg class="logo-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="12" cy="12" r="4" fill="url(#lm-a)" />
@@ -82,53 +113,36 @@ onUnmounted(() => {
 
       <div class="status-pill">
         <span class="status-dot" />
-        <span class="status-label">ONLINE</span>
+        <span class="status-label">{{ statusLabel }}</span>
       </div>
     </header>
 
-    <!-- HUD left (idle only) -->
-    <aside class="hud hud-left" :class="{ 'hud-gone': hasMessages }" aria-hidden="true">
+    <aside class="hud hud-left" aria-hidden="true">
       <span class="hud-line">PENSAR</span>
       <span class="hud-line">PLANEJAR</span>
       <span class="hud-line">REALIZAR</span>
       <span class="hud-line">EVOLUIR</span>
     </aside>
 
-    <!-- HUD right (idle only) -->
-    <aside class="hud hud-right" :class="{ 'hud-gone': hasMessages }" aria-hidden="true">
+    <aside class="hud hud-right" aria-hidden="true">
       <span class="hud-line">AURORA SYSTEM</span>
       <span class="hud-line">CORE ONLINE</span>
       <span class="hud-line">VOICE READY</span>
     </aside>
 
-    <!-- Main content -->
-    <main class="chat-main" :class="{ 'in-chat': hasMessages }">
-      <!-- Aurora Core (protagonist) -->
-      <div class="core-section" :class="{ 'core-compact': hasMessages }">
-        <AuroraCore :state="auroraStore.state" :compact="hasMessages" />
+    <main class="aurora-main">
+      <div class="core-section">
+        <AuroraCore :state="auroraStore.state" />
       </div>
-
-      <!-- Conversation (only when chatting) -->
-      <div v-if="hasMessages" class="messages-section">
-        <ChatMessages />
-      </div>
-
-      <!-- Input area (always present) -->
-      <div class="input-area">
-        <ChatInput @submit="sendMessage" />
-      </div>
-
-      <!-- Tagline (idle only) -->
-      <p class="tagline" :class="{ 'tagline-gone': hasMessages }" aria-hidden="true">
-        Inteligência em movimento
+      <p class="prompt" :class="{ alert: !isConfigured || needsGesture || lastError }">
+        {{ prompt }}
       </p>
     </main>
   </div>
 </template>
 
 <style scoped>
-/* ── Page shell ───────────────────────────────── */
-.chat-page {
+.aurora-page {
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -138,7 +152,6 @@ onUnmounted(() => {
   color: rgba(226, 232, 240, 0.90);
 }
 
-/* ── Backgrounds ──────────────────────────────── */
 .bg-deep {
   position: absolute;
   inset: 0;
@@ -163,8 +176,7 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* ── Header ───────────────────────────────────── */
-.chat-header {
+.aurora-header {
   position: relative;
   z-index: 20;
   display: flex;
@@ -219,7 +231,6 @@ onUnmounted(() => {
   color: rgba(148, 163, 184, 0.65);
 }
 
-/* ── HUD overlays ─────────────────────────────── */
 .hud {
   position: fixed;
   top: 50%;
@@ -228,18 +239,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 .hud-left  { left: 36px; }
 .hud-right { right: 36px; align-items: flex-end; }
-
-.hud-gone {
-  opacity: 0;
-  pointer-events: none;
-}
-.hud-left.hud-gone  { transform: translateY(-50%) translateX(-16px); }
-.hud-right.hud-gone { transform: translateY(-50%) translateX(16px); }
 
 .hud-line {
   font-family: 'Space Grotesk', sans-serif;
@@ -249,8 +252,7 @@ onUnmounted(() => {
   color: rgba(99, 102, 241, 0.38);
 }
 
-/* ── Main content area ────────────────────────── */
-.chat-main {
+.aurora-main {
   position: relative;
   z-index: 10;
   flex: 1;
@@ -260,67 +262,36 @@ onUnmounted(() => {
   align-items: center;
 }
 
-/* Core section: fills main in idle, compact at top in chat */
 .core-section {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
-  transition: flex 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-              padding 0.6s ease;
 }
 
-.core-compact {
-  flex: 0 0 auto;
-  padding: 20px 0 10px;
-}
-
-/* Messages */
-.messages-section {
-  flex: 1;
-  width: 100%;
-  max-width: 780px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Input */
-.input-area {
-  width: 100%;
-  max-width: 780px;
-  padding: 14px 24px 28px;
-  flex-shrink: 0;
-}
-
-/* Tagline */
-.tagline {
+.prompt {
   font-size: 13px;
-  color: rgba(100, 116, 139, 0.45);
+  color: rgba(100, 116, 139, 0.55);
   letter-spacing: 0.06em;
-  padding-bottom: 28px;
+  padding-bottom: 36px;
   margin: 0;
   flex-shrink: 0;
-  transition: opacity 0.4s ease;
+  text-align: center;
+  max-width: 480px;
 }
 
-.tagline-gone {
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
+.prompt.alert {
+  color: rgba(248, 113, 113, 0.85);
 }
 
-/* ── Keyframes ────────────────────────────────── */
 @keyframes dot-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
 
-/* ── Mobile ───────────────────────────────────── */
 @media (max-width: 768px) {
   .hud { display: none; }
-  .chat-header { padding: 16px 20px; }
+  .aurora-header { padding: 16px 20px; }
   .logo-text { font-size: 16px; letter-spacing: 0.24em; }
-  .input-area { padding: 10px 16px 20px; }
 }
 </style>

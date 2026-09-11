@@ -37,4 +37,21 @@ describe('VoiceButton', () => {
 
     expect(store.state).toBe('idle')
   })
+
+  it('emits toggle on click when voiceAgent is enabled', async () => {
+    const wrapper = mount(VoiceButton, { props: { voiceAgent: true } })
+
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.emitted('toggle')).toHaveLength(1)
+  })
+
+  it('does not change aurora state on mousedown when voiceAgent is enabled', async () => {
+    const wrapper = mount(VoiceButton, { props: { voiceAgent: true } })
+    const store = useAuroraStore()
+
+    await wrapper.find('button').trigger('mousedown')
+
+    expect(store.state).toBe('idle')
+  })
 })
