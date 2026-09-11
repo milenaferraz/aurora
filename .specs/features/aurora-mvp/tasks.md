@@ -12,7 +12,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 **Design**: `.specs/features/aurora-mvp/design.md`
 **Status**: Approved
 
-> **Configuration**: `Hermes__UseFake=true` for all environments until Milestone 4.
+> **Configuration**: `Hermes__BaseUrl` must be configured for all environments.
 
 ---
 
@@ -24,7 +24,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------ | -------------------- | ---------------- | ----------- |
 | Application services (ChatService, DashboardService, ChatStreamingService) | unit | All branches; 1:1 to spec ACs; all listed edge cases | `tests/Aurora.UnitTests/**/*.cs` | `dotnet test tests/Aurora.UnitTests` |
-| Infrastructure (FakeHermesClient, HermesHttpClient) | unit | Key paths + error paths | `tests/Aurora.UnitTests/**/*.cs` | `dotnet test tests/Aurora.UnitTests` |
+| Infrastructure (HermesHttpClient, HermesHttpClient) | unit | Key paths + error paths | `tests/Aurora.UnitTests/**/*.cs` | `dotnet test tests/Aurora.UnitTests` |
 | Middleware (CorrelationId, ExceptionHandler) | unit | ID generation/propagation; 500 on unhandled; 502 on HermesException | `tests/Aurora.UnitTests/**/*.cs` | `dotnet test tests/Aurora.UnitTests` |
 | Controllers / endpoints | integration | All routes: happy + validation error + Hermes-offline paths | `tests/Aurora.IntegrationTests/**/*.cs` | `dotnet test tests/Aurora.IntegrationTests` |
 | Domain / Contracts / Config / DI | none | Build gate only | — | build gate only |
@@ -56,7 +56,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | M1: "Hello Aurora" | T12 | Type "Aurora, boa noite." → backend responds via FakeHermes → text appears |
 | M2: "Aurora is Streaming" | T18 | Full SSE streaming with "Aurora está pensando..." animation |
 | M3: "Dashboard & Home" | T24 | Full home screen: greeting, AuroraCore, system status, cards |
-| M4: "Real Hermes Ready" | T26 | Set `Hermes__UseFake=false` + `Hermes__BaseUrl` → real Hermes works |
+| M4: "Real Hermes Ready" | T26 | Configure `Hermes__BaseUrl` → real Hermes works |
 
 ---
 
@@ -285,10 +285,10 @@ T32 → T33 → T34
 
 ---
 
-### T7: Implement FakeHermesClient
+### T7: Implement HermesHttpClient
 
-**What**: Implement `FakeHermesClient` that yields a fixed streaming response simulating Aurora's greeting.
-**Where**: `src/Aurora.Infrastructure/Hermes/FakeHermesClient.cs`
+**What**: Implement `HermesHttpClient` that yields a fixed streaming response simulating Aurora's greeting.
+**Where**: `src/Aurora.Infrastructure/Hermes/HermesHttpClient.cs`
 **Depends on**: T6
 **Reuses**: `IHermesClient`, `ChatStreamEvent`, `ChatResponse`
 
@@ -363,9 +363,9 @@ T32 → T33 → T34
 
 **Done when**:
 - [x] `POST /api/chat`: validates `message` non-empty (FluentValidation); calls `ChatService.ChatAsync`; returns 200 `ChatResponse`; empty message → 400 with validation errors
-- [x] `Program.cs`: registers DI (Infrastructure services with `Hermes__UseFake=true` default), CORS (`http://localhost:5173`), FluentValidation, Serilog minimal console, controllers; middleware order: ExceptionHandler → CorrelationId → CORS → Controllers
-- [x] `appsettings.json` has `Hermes` section (`BaseUrl`, `UseFake`), `AllowedOrigins` array — no secrets or hardcoded URLs
-- [x] Integration test (`WebApplicationFactory`): `POST /api/chat` returns 200 with `conversationId` and `message` (using FakeHermesClient)
+- [x] `Program.cs`: registers DI (Infrastructure services with real Hermes configuration), CORS (`http://localhost:5173`), FluentValidation, Serilog minimal console, controllers; middleware order: ExceptionHandler → CorrelationId → CORS → Controllers
+- [x] `appsettings.json` has `Hermes` section (`BaseUrl`, `ApiKey`, `Model`), `AllowedOrigins` array — no secrets or hardcoded URLs
+- [x] Integration test (`WebApplicationFactory`): `POST /api/chat` returns 200 with `conversationId` and `message` using mocked Hermes HTTP responses
 - [x] Integration test: empty `message` returns 400
 - [x] Integration test: response has `X-Correlation-Id` header
 - [x] `dotnet test tests/Aurora.IntegrationTests` exits 0
@@ -459,7 +459,7 @@ T32 → T33 → T34
 - [x] Iterates `ChatStreamingService.StreamAsync`; writes `event: {type}\ndata: {json}\n\n` per event; flushes after each
 - [x] `OperationCanceledException` (client disconnect) exits silently
 - [x] `HermesException` emits `error` SSE event with safe message, then returns
-- [x] Integration test: `POST /api/chat/stream` returns `Content-Type: text/event-stream`; response body contains `message.started` and `message.completed` events from FakeHermesClient
+- [x] Integration test: `POST /api/chat/stream` returns `Content-Type: text/event-stream`; response body contains `message.started` and `message.completed` events from HermesHttpClient
 - [x] Integration test: verifies no internal chain-of-thought in any event `Content` field
 - [x] `dotnet test tests/Aurora.IntegrationTests` exits 0
 
@@ -571,14 +571,14 @@ T32 → T33 → T34
 **What**: Create `MockCalendarProvider`, `MockTaskProvider`, `MockEmailProvider` and the `InfrastructureServiceExtensions` DI registration method.
 **Where**: `src/Aurora.Infrastructure/Mocks/`, `src/Aurora.Infrastructure/Extensions/InfrastructureServiceExtensions.cs`, `src/Aurora.Infrastructure/Hermes/HermesOptions.cs`
 **Depends on**: T18
-**Reuses**: `ICalendarProvider`, `ITaskProvider`, `IEmailProvider`, `IHermesClient`, `FakeHermesClient`
+**Reuses**: `ICalendarProvider`, `ITaskProvider`, `IEmailProvider`, `IHermesClient`, `HermesHttpClient`
 
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `HermesOptions`: `record HermesOptions { string BaseUrl; bool UseFake; }` bound from `"Hermes"` config section
+- [ ] `HermesOptions`: `record HermesOptions { string BaseUrl; bool BaseUrl; }` bound from `"Hermes"` config section
 - [ ] All three mock providers return zero counts and null next event
-- [ ] `AddInfrastructure(IConfiguration)` extension registers: `HermesOptions` (validates `BaseUrl` not empty when `UseFake=false`), named HttpClient "hermes", `IHermesClient` → `FakeHermesClient` when `UseFake=true`, all three mock providers
+- [ ] `AddInfrastructure(IConfiguration)` extension registers: `HermesOptions` (validates `BaseUrl` not empty when `BaseUrl=false`), named HttpClient "hermes", `IHermesClient` → `HermesHttpClient` when `BaseUrl=true`, all three mock providers
 - [ ] Build passes with zero infrastructure warnings
 - [ ] `Program.cs` updated to call `services.AddInfrastructure(configuration)` replacing manual registrations from T10
 
@@ -625,7 +625,7 @@ T32 → T33 → T34
 - [ ] Health checks registered: `aurora-api` (always healthy) + `hermes` (calls `IHermesClient.IsHealthyAsync`)
 - [ ] `GET /health` returns ASP.NET Core health check JSON format with both entries
 - [ ] Integration test: `GET /api/dashboard` returns 200 with all required fields (`greeting`, `aurora.status`, `agenda`, `tasks`, `emails`, `system`)
-- [ ] Integration test: `system.hermes = "online"` with FakeHermesClient
+- [ ] Integration test: `system.hermes = "online"` with HermesHttpClient
 - [ ] Integration test: `GET /health` returns 200 with `aurora-api: Healthy` and `hermes: Healthy`
 - [ ] `dotnet test tests/Aurora.IntegrationTests` exits 0
 
@@ -717,11 +717,11 @@ T32 → T33 → T34
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Constructor receives `IOptions<HermesOptions>` and `IHttpClientFactory`; throws `InvalidOperationException` if `BaseUrl` is null/empty when `UseFake=false`
+- [ ] Constructor receives `IOptions<HermesOptions>` and `IHttpClientFactory`; throws `InvalidOperationException` if `BaseUrl` is null/empty when `BaseUrl=false`
 - [ ] `ChatAsync`: POSTs to `{BaseUrl}/api/chat`; on non-2xx status throws `HermesException(message, (int)statusCode)`
 - [ ] `StreamChatAsync`: POSTs with `HttpCompletionOption.ResponseHeadersRead`; reads body line-by-line as SSE; parses `event:` and `data:` lines; yields `ChatStreamEvent`; on `OperationCanceledException` stops cleanly
 - [ ] `IsHealthyAsync`: GETs `{BaseUrl}/health`; returns `true` on 2xx; returns `false` on any exception (never throws)
-- [ ] DI extension (`AddInfrastructure`) registers `HermesHttpClient` when `UseFake=false`
+- [ ] DI extension (`AddInfrastructure`) registers `HermesHttpClient` when `BaseUrl=false`
 - [ ] Unit test (mocked `HttpMessageHandler`): non-2xx ChatAsync → throws `HermesException`
 - [ ] Unit test: `IsHealthyAsync` returns `false` when HTTP call throws `HttpRequestException`
 - [ ] `dotnet test tests/Aurora.UnitTests` exits 0
@@ -744,10 +744,10 @@ T32 → T33 → T34
 - [ ] Serilog: console sink with structured output; request logging enriched with `CorrelationId`; minimum level configurable from `appsettings.json`
 - [ ] Swagger/OpenAPI: title "Aurora API", version "v1"; accessible at `/swagger` in development
 - [ ] Middleware order finalized: ExceptionHandler → CorrelationId → CORS → Swagger (dev) → Controllers
-- [ ] `appsettings.Development.json` has `Hermes__UseFake=true` (no Hermes needed for local dev)
+- [ ] `appsettings.Development.json` has `Hermes__BaseUrl` configured for local dev
 - [ ] Auth stub: `app.UseAuthorization()` wired but no policy enforced (controllers remain anonymous for MVP)
 - [ ] Integration test: `GET /health` still returns healthy; `GET /api/dashboard` returns full response
-- [ ] **MILESTONE 4**: set `Hermes__UseFake=false` + `Hermes__BaseUrl=<real>` in env → real Hermes responds
+- [ ] **MILESTONE 4**: set `Hermes__BaseUrl=<real>` in env → real Hermes responds
 - [ ] `dotnet build Aurora.sln && dotnet test Aurora.sln` exits 0
 
 **Tests**: integration
@@ -850,7 +850,7 @@ T32 → T33 → T34
 **Done when**:
 - [ ] `Dockerfile.api`: multi-stage (sdk → publish → runtime `mcr.microsoft.com/dotnet/aspnet:9.0`); exposes port 8080; `ENTRYPOINT ["dotnet", "Aurora.Api.dll"]`
 - [ ] `Dockerfile.web`: multi-stage (node:20-alpine build → nginx:alpine serve); nginx serves `dist/` on port 80
-- [ ] `docker-compose.yml`: `aurora-api` (8080:8080), `aurora-web` (5173:80); `Hermes__BaseUrl`, `Hermes__UseFake`, `AllowedOrigins`, `VITE_AURORA_API_URL` as env vars; no secrets in file
+- [ ] `docker-compose.yml`: `aurora-api` (8080:8080), `aurora-web` (5173:80); `Hermes__BaseUrl`, `AllowedOrigins`, `VITE_AURORA_API_URL` as env vars; no secrets in file
 - [ ] `docker compose config` exits 0 (valid compose file)
 
 **Tests**: none
@@ -869,7 +869,7 @@ T32 → T33 → T34
 
 **Done when**:
 - [ ] Triggered on `push` and `pull_request` to `main`
-- [ ] Jobs in order: `backend-build` (restore + `dotnet build`) → `backend-test` (`dotnet test` with `Hermes__UseFake=true`) → `frontend-install` (`npm ci`) → `frontend-lint` (`npm run lint`) → `frontend-test` (`npm run test`) → `frontend-build` (`npm run build`)
+- [ ] Jobs in order: `backend-build` (restore + `dotnet build`) → `backend-test` (`dotnet test` with `Hermes__BaseUrl`) → `frontend-install` (`npm ci`) → `frontend-lint` (`npm run lint`) → `frontend-test` (`npm run test`) → `frontend-build` (`npm run build`)
 - [ ] Each job depends on its predecessor; pipeline fails fast
 - [ ] Uses `actions/checkout@v4`, `actions/setup-dotnet@v4` (9.0), `actions/setup-node@v4` (20), `--prefix src/aurora-web` for npm commands
 - [ ] YAML is valid (no syntax errors)
@@ -888,7 +888,7 @@ T32 → T33 → T34
 
 **Done when**:
 - [ ] Sections: Project Vision, Architecture (text diagram matching design.md), Repository Structure, Tech Stack, How to Run (local dev + Docker), Environment Variables table, Hermes Integration guide, API Endpoints table (`POST /api/chat`, `POST /api/chat/stream`, `GET /api/dashboard`, `GET /health`), Roadmap (Phases 1–5)
-- [ ] Environment variable table includes: `Hermes__BaseUrl`, `Hermes__UseFake`, `AllowedOrigins`, `VITE_AURORA_API_URL`
+- [ ] Environment variable table includes: `Hermes__BaseUrl`, `Hermes__BaseUrl`, `AllowedOrigins`, `VITE_AURORA_API_URL`
 - [ ] File is complete and non-empty
 
 **Tests**: none
@@ -923,7 +923,7 @@ T32 → T33 → T34
 | T4: HermesException | 1 file | ✅ Granular |
 | T5: Contracts | 1 layer, cohesive types | ✅ Granular |
 | T6: Application interfaces | 1 layer, 4 related interfaces | ✅ Granular |
-| T7: FakeHermesClient | 1 class | ✅ Granular |
+| T7: HermesHttpClient | 1 class | ✅ Granular |
 | T8: ChatService | 1 class | ✅ Granular |
 | T9: CorrelationId + ExceptionHandler | 2 cohesive middleware files | ✅ Granular |
 | T10: ChatController + Program.cs minimal | 1 endpoint + minimal wiring | ✅ Granular |
@@ -999,7 +999,7 @@ T32 → T33 → T34
 
 | Task | Code Layer | Matrix Requires | Task Says | Status |
 | ---- | ---------- | --------------- | --------- | ------ |
-| T7: FakeHermesClient | Infrastructure | unit | unit | ✅ OK |
+| T7: HermesHttpClient | Infrastructure | unit | unit | ✅ OK |
 | T8: ChatService | Application service | unit | unit | ✅ OK |
 | T9: Middlewares | Middleware | unit | unit | ✅ OK |
 | T10: ChatController | Controller/endpoint | integration | integration | ✅ OK |

@@ -1124,14 +1124,14 @@ Se a integração real com Hermes não puder ser concluída imediatamente por fa
 
 ```text
 IHermesClient
-FakeHermesClient
+HermesHttpClient
 HermesHttpClient
 ```
 
 E permitir alternar via configuração:
 
 ```text
-Hermes__UseFake=true
+Hermes__BaseUrl=https://your-hermes-host
 ```
 
 Assim o frontend deve funcionar mesmo antes da integração real.

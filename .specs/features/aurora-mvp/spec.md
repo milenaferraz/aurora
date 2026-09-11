@@ -35,7 +35,7 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 | --------------------- | -------------- | --------- | ---------- |
 | .NET version | .NET 9 LTS (if 10 unavailable in env) | doc.md says ".NET 10 or latest LTS"; check env at build time | y |
 | Hermes BaseUrl default | `http://localhost:5000` (configurable via `Hermes__BaseUrl`) | Never hardcoded; doc specifies env-var approach | y |
-| FakeHermesClient behavior | Streams 3 SSE delta events then a completed event with a canned response | Enables full frontend demo without real Hermes | y |
+| HermesHttpClient behavior | Streams 3 SSE delta events then a completed event with a canned response | Enables full frontend demo without real Hermes | y |
 | Auth middleware | Stub middleware wired (no logic); controllers accept anonymous | Prepared but not blocking MVP | y |
 | Dashboard mock providers | Return zeroed counts / null next event | Real integrations replace providers later | y |
 | CORS dev origin | `http://localhost:5173` (Vite default) | doc specifies this explicitly | y |
@@ -72,18 +72,16 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 
 **User Story**: As a developer, I want a clean IHermesClient interface with HttpClient and Fake implementations so that the frontend works end-to-end even when Hermes is not configured.
 
-**Why P1**: Enables the vertical slice with or without a real Hermes instance.
+**Why P1**: Enables the vertical slice with or with Hermes configured.
 
 **Acceptance Criteria**:
 
 1. The system SHALL define `IHermesClient` with `ChatAsync`, `StreamChatAsync`, and `IsHealthyAsync` methods in Aurora.Application.
 2. The system SHALL provide `HermesHttpClient` implementing `IHermesClient`, reading `Hermes__BaseUrl` from configuration — never hardcoded.
-3. WHERE `Hermes__UseFake=true` the system SHALL register `FakeHermesClient` instead of `HermesHttpClient`.
-4. `FakeHermesClient.StreamChatAsync` SHALL yield at least `message.started`, two `message.delta`, and one `message.completed` SSE events.
-5. IF `Hermes__BaseUrl` is missing or empty THEN the system SHALL throw a configuration exception at startup with a descriptive message.
+3. 5. IF `Hermes__BaseUrl` is missing or empty THEN the system SHALL throw a configuration exception at startup with a descriptive message.
 6. IF Hermes returns a non-2xx response THEN `HermesHttpClient` SHALL throw a domain exception that the API layer translates to a 502 response.
 
-**Independent Test**: Unit test `FakeHermesClient` yields correct events; unit test `HermesHttpClient` with mocked `HttpMessageHandler` handles non-2xx correctly.
+**Independent Test**: Unit test `HermesHttpClient` with mocked `HttpMessageHandler` handles non-2xx correctly.
 
 ---
 
@@ -101,7 +99,7 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 4. The system SHALL pass a `CancellationToken` to `IHermesClient.ChatAsync`.
 5. WHEN the request includes `X-Correlation-Id` THEN the system SHALL echo the same ID in the response header; WHEN absent the system SHALL generate and attach a new UUID.
 
-**Independent Test**: Integration test hitting the endpoint with FakeHermesClient returns 200 with valid body; missing message returns 400.
+**Independent Test**: Integration test hitting the endpoint with HermesHttpClient returns 200 with valid body; missing message returns 400.
 
 ---
 
@@ -120,7 +118,7 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 5. IF the client disconnects THEN the system SHALL cancel the `CancellationToken` and stop streaming.
 6. IF Hermes is unreachable THEN the system SHALL emit a single `error` event with a safe user-facing message and close the stream.
 
-**Independent Test**: Integration test reads SSE events from the endpoint using FakeHermesClient; verifies event order and no internal reasoning in payloads.
+**Independent Test**: Integration test reads SSE events from the endpoint using HermesHttpClient; verifies event order and no internal reasoning in payloads.
 
 ---
 
@@ -155,7 +153,7 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 3. WHEN Hermes is reachable THEN system SHALL return `Healthy` for `hermes`; WHEN unreachable SHALL return `Unhealthy`.
 4. The response SHALL conform to the ASP.NET Core Health Checks JSON format (status, entries, totalDuration).
 
-**Independent Test**: Integration test hits `/health` with FakeHermesClient returning healthy; verifies both entries present.
+**Independent Test**: Integration test hits `/health` with HermesHttpClient returning healthy; verifies both entries present.
 
 ---
 
@@ -307,7 +305,7 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 
 1. WHEN `docker compose up` runs THEN the system SHALL start `aurora-api` on port 8080 and `aurora-web` on port 5173.
 2. The system SHALL configure `Hermes__BaseUrl` and `AllowedOrigins` as environment variables in `docker-compose.yml` — never hardcoded.
-3. WHEN `Hermes__UseFake=true` is set THEN the stack SHALL work without an external Hermes instance.
+3. WHEN `Hermes__BaseUrl` is set THEN the stack SHALL work without an external Hermes instance.
 
 **Independent Test**: `docker compose up` starts both services; `curl http://localhost:8080/health` returns healthy.
 
@@ -324,7 +322,7 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 1. The system SHALL have xUnit tests for `ChatService` covering chat request forwarding and error handling.
 2. The system SHALL have xUnit tests for `DashboardService` covering greeting logic and hermes status mapping.
 3. The system SHALL have xUnit tests for `HermesHttpClient` (mocked HttpMessageHandler) covering success and non-2xx paths.
-4. The system SHALL have xUnit tests for `FakeHermesClient` verifying it yields the correct SSE event sequence.
+4. The system SHALL have xUnit tests for `HermesHttpClient` verifying it yields the correct SSE event sequence.
 5. The system SHALL have an integration test for the `/health` endpoint verifying both entries are present.
 6. WHEN `dotnet test` runs THEN the system SHALL exit with code 0 and all tests pass.
 
@@ -428,6 +426,6 @@ Milena needs a personal AI assistant that feels alive — not a chatbot dashboar
 - [ ] `npm run test` exits 0 with all tests passing
 - [ ] `docker compose up` starts both services and `/health` returns healthy for both
 - [ ] User can type "Aurora, boa noite." in the chat and see a progressive streaming response
-- [ ] When `Hermes__UseFake=true`, the full vertical slice works end-to-end without a real Hermes instance
+- [ ] When `Hermes__BaseUrl` is configured, the full vertical slice works end-to-end with Hermes
 - [ ] Home screen visually matches the futuristic dark AI aesthetic described in doc.md
 - [ ] Hermes offline state is detectable and shown in the UI

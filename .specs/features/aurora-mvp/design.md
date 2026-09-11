@@ -28,7 +28,7 @@ graph TD
 
     subgraph aurora-infra ["Aurora.Infrastructure"]
         HERMES_HTTP[HermesHttpClient]
-        HERMES_FAKE[FakeHermesClient]
+        HERMES_FAKE[HermesHttpClient]
         MOCK_PROV[MockProviders: Calendar, Tasks, Email]
     end
 
@@ -46,14 +46,13 @@ graph TD
     SVC_Dash -- ITaskProvider --> MOCK_PROV
     SVC_Dash -- IEmailProvider --> MOCK_PROV
     HERMES_HTTP --> HERMES
-    HERMES_HTTP -. "Hermes__UseFake=true" .-> HERMES_FAKE
     HC -- IHermesClient --> HERMES_HTTP
 ```
 
 **Key decisions:**
 - Frontend → Aurora API only (never directly to Hermes)
 - SSE over WebSockets (simpler, no upgrade handshake, works over HTTP/1.1)
-- FakeHermesClient registered via config flag for full-stack dev without Hermes
+- HermesHttpClient is the only runtime integration with Hermes; tests mock the outbound HTTP layer
 - Mock providers (ICalendarProvider etc.) allow dashboard to compile and serve now; swapped for real impls in Phase 2
 
 ---
@@ -129,9 +128,7 @@ External integrations and mock providers.
 - **Contents**:
   - `Hermes/IHermesClient.cs` — (interface lives in Application; impls here)
   - `Hermes/HermesHttpClient.cs`
-  - `Hermes/FakeHermesClient.cs`
-  - `Hermes/HermesOptions.cs` — `{ string BaseUrl, bool UseFake }`
-  - `Mocks/MockCalendarProvider.cs`
+  -   - `Mocks/MockCalendarProvider.cs`
   - `Mocks/MockTaskProvider.cs`
   - `Mocks/MockEmailProvider.cs`
   - `Logging/` — Serilog configuration helpers
@@ -176,7 +173,7 @@ Reads `Hermes__BaseUrl` from `IOptions<HermesOptions>`. Uses `IHttpClientFactory
 
 ---
 
-### FakeHermesClient
+### HermesHttpClient
 
 `ChatAsync` — returns a `ChatResponse` with a canned message after a 200ms fake delay.
 
@@ -401,7 +398,7 @@ interface DashboardResponse {
 | Response buffering blocks SSE | `ChatController` | Events not flushed immediately | Disable buffering via `IHttpBodyControlFeature`; set `Response.Headers["Cache-Control"] = "no-cache"` |
 | .NET version availability | `Aurora.sln` | Build fails if .NET 10 not installed | Target net9.0 with a TODO comment; upgrade to net10.0 when stable |
 | Tailwind v4 vs v3 config differences | `aurora-web` | Config format changed in v4 | Use Vite plugin `@tailwindcss/vite` for v4 or fall back to v3 PostCSS approach; check at scaffold time |
-| FakeHermesClient not streaming real content | Tests | Tests don't catch real Hermes response format issues | Document as known limitation; add integration test with real Hermes in Phase 2 |
+| HermesHttpClient not streaming real content | Tests | Tests don't catch real Hermes response format issues | Document as known limitation; add integration test with real Hermes in Phase 2 |
 
 ---
 
@@ -411,7 +408,7 @@ interface DashboardResponse {
 | --------- | ------ | --------- |
 | Streaming mechanism | Server-Sent Events (SSE) | Simpler than WebSockets; one-way server→client; works over HTTP/1.1; no upgrade handshake; matches Hermes output model |
 | Architecture style | Pragmatic Clean Architecture (modular monolith) | Avoids overengineering; allows future service extraction; no CQRS/event bus complexity in MVP |
-| Hermes toggle | `Hermes__UseFake` env var | Lets frontend demo work without Hermes; toggled per environment |
+| Hermes config | `Hermes__BaseUrl` env var | Required runtime configuration for Hermes; no runtime path |
 | Mock providers | Interface + mock impl registered via DI | Zero coupling between DashboardService and real integrations; swap in Phase 2 by re-registering |
 | Frontend SSE | fetch + ReadableStream | EventSource doesn't support POST; fetch + stream is the correct web-standard approach |
 | State management | Pinia | Lighter than Vuex; composition-API native; first-class TypeScript |
@@ -421,4 +418,4 @@ interface DashboardResponse {
 > **Project-level decisions logged to STATE.md:**
 > - AD-001: SSE for chat streaming (not WebSockets)
 > - AD-002: Modular monolith, pragmatic Clean Architecture
-> - AD-003: FakeHermesClient pattern for dev/test
+> - AD-003: HermesHttpClient pattern for dev/test

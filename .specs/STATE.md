@@ -22,13 +22,13 @@
 
 ---
 
-### AD-003: FakeHermesClient Pattern
+### AD-003: Real Hermes Only
 
 **Status**: active
-**Context**: Hermes Agent may not be available during development or CI.
-**Decision**: `Hermes__UseFake=true` environment variable switches registration from `HermesHttpClient` to `FakeHermesClient`. Both implement `IHermesClient`.
-**Rationale**: Full vertical slice works without Hermes; CI uses fake; production uses real.
-**Consequences**: Every environment that doesn't have Hermes sets `Hermes__UseFake=true`. Tests always use the fake or a mock.
+**Context**: Aurora now targets the real Hermes service in all environments.
+**Decision**: `HermesHttpClient` is the only runtime `IHermesClient` implementation.
+**Rationale**: Keep the API flow explicit and production-like; avoid dual runtime paths.
+**Consequences**: Development, CI, and production must all configure `Hermes:BaseUrl` (or equivalent env vars). Tests should use mocked HTTP handlers for Hermes calls.
 
 ---
 
@@ -38,7 +38,7 @@
 **Feature**: aurora-mvp
 **Current phase**: Execute (tasks.md approved, awaiting batch execution)
 **Completed tasks**: None
-**Next step**: Execute B1 (T1–T8): Foundation + FakeHermes — first batch
+**Next step**: Continue with the current phase using the real Hermes configuration.
 **Branch**: main (no git repo initialized yet)
 **Blockers**: None
-**Config**: `Hermes__UseFake=true` for all batches until Milestone 4
+**Config**: `Hermes__BaseUrl` is required for runtime Hermes calls; tests mock HTTP dependencies
