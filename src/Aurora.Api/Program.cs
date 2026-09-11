@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Aurora.Api.HealthChecks;
 using Aurora.Api.Middleware;
 using Aurora.Api.Validators;
@@ -20,8 +22,14 @@ builder.Host.UseSerilog((ctx, lc) => lc
     .WriteTo.Console());
 
 // CORS
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:5173" };
+var configuredOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+var environmentWebOrigin = Environment.GetEnvironmentVariable("AURORA_WEB_URL")?.Trim();
+var allowedOrigins = configuredOrigins
+    .Concat(new[] { environmentWebOrigin, "https://aurora-web2.2.25.217.9.sslip.io", "http://localhost:5173" })
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy.WithOrigins(allowedOrigins)
