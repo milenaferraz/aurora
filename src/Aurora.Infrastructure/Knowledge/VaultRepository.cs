@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aurora.Domain.Knowledge;
 using Microsoft.Extensions.Options;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Aurora.Infrastructure.Knowledge
 {
@@ -15,11 +17,17 @@ namespace Aurora.Infrastructure.Knowledge
     {
         private readonly VaultOptions _options;
         private readonly IMarkdownGenerator _markdownGenerator;
+        private readonly ISlugGenerator _slugGenerator;
+        private static readonly Deserializer Deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .IgnoreUnmatchedProperties()
+            .Build();
 
-        public VaultRepository(IOptions<VaultOptions> options, IMarkdownGenerator markdownGenerator)
+        public VaultRepository(IOptions<VaultOptions> options, IMarkdownGenerator markdownGenerator, ISlugGenerator slugGenerator)
         {
             _options = options.Value;
             _markdownGenerator = markdownGenerator;
+            _slugGenerator = slugGenerator;
             // Ensure vault path exists
             if (!Directory.Exists(_options.VaultPath))
             {
@@ -96,25 +104,72 @@ namespace Aurora.Infrastructure.Knowledge
             };
         }
 
-        public Task<MemoryFile?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<MemoryFile?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            // For simplicity, we could scan all files, but we'll skip for now.
-            return Task.FromResult<MemoryFile?>(null);
+            foreach (var filePath in Directory.EnumerateFiles(_options.VaultPath, "*.md", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    var text = await File.ReadAllTextAsync(filePath, cancellationToken);
+                    var memory = ParseMemoryFromMarkdown(text, filePath);
+                    if (memory != null && memory.Id == id)
+                    {
+                        return new MemoryFile
+                        {
+                            Id = memory.Id,
+                            Title = memory.Title,
+                            Type = memory.Type,
+                            Content = memory.Content,
+                            Project = memory.Project,
+                            Tags = memory.Tags,
+                            Relations = memory.Relations,
+                            Source = memory.Source,
+                            Importance = memory.Importance,
+                            CreatedAt = memory.CreatedAt,
+                            UpdatedAt = memory.UpdatedAt,
+                            FilePath = filePath,
+                            RelativePath = Path.GetRelativePath(_options.VaultPath, filePath)
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error and continue
+                    continue;
+                }
+            }
+            return null;
         }
 
-        public Task<MemoryFile> UpdateAsync(Memory memory, string relativePath, CancellationToken cancellationToken = default)
+        public async Task<MemoryFile> UpdateAsync(Memory memory, string relativePath, CancellationToken cancellationToken = default)
         {
-            // For simplicity, we'll just overwrite the file at relativePath (assuming it's the correct one)
+            if (memory == null) throw new ArgumentNullException(nameof(memory));
+            if (string.IsNullOrWhiteSpace(relativePath)) throw new ArgumentException("relativePath is required");
+
             var fullPath = Path.Combine(_options.VaultPath, relativePath);
             if (!File.Exists(fullPath))
             {
                 throw new FileNotFoundException($"Memory file not found: {relativePath}");
             }
+
+            // Security check: ensure path is within vault
+            var vaultFullPath = Path.GetFullPath(_options.VaultPath);
+            var fullPathAbsolute = Path.GetFullPath(fullPath);
+            if (!fullPathAbsolute.StartsWith(vaultFullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException("Path traversal attempt detected.");
+            }
+
+            // Read existing to preserve CreatedAt if not set? We'll keep the memory's CreatedAt as is (should be set).
+            // Generate markdown
             var markdown = _markdownGenerator.Generate(memory);
+
+            // Write atomically
             var tempPath = Path.Combine(Path.GetDirectoryName(fullPath), Path.GetFileNameWithoutExtension(fullPath) + ".tmp");
-            File.WriteAllText(tempPath, markdown, Encoding.UTF8);
+            await File.WriteAllTextAsync(tempPath, markdown, Encoding.UTF8, cancellationToken);
             File.Move(tempPath, fullPath, true);
-            return Task.FromResult(new MemoryFile
+
+            return new MemoryFile
             {
                 Id = memory.Id,
                 Title = memory.Title,
@@ -129,39 +184,168 @@ namespace Aurora.Infrastructure.Knowledge
                 UpdatedAt = memory.UpdatedAt,
                 FilePath = fullPath,
                 RelativePath = relativePath
-            });
+            };
         }
 
-        public Task<IReadOnlyCollection<MemoryFile>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyCollection<MemoryFile>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var files = new List<MemoryFile>();
             foreach (var filePath in Directory.EnumerateFiles(_options.VaultPath, "*.md", SearchOption.AllDirectories))
             {
-                // We could parse frontmatter, but for now we'll skip.
-                files.Add(new MemoryFile
+                try
                 {
-                    FilePath = filePath,
-                    RelativePath = Path.GetRelativePath(_options.VaultPath, filePath)
-                });
+                    var text = await File.ReadAllTextAsync(filePath, cancellationToken);
+                    var memory = ParseMemoryFromMarkdown(text, filePath);
+                    if (memory != null)
+                    {
+                        files.Add(new MemoryFile
+                        {
+                            Id = memory.Id,
+                            Title = memory.Title,
+                            Type = memory.Type,
+                            Content = memory.Content,
+                            Project = memory.Project,
+                            Tags = memory.Tags,
+                            Relations = memory.Relations,
+                            Source = memory.Source,
+                            Importance = memory.Importance,
+                            CreatedAt = memory.CreatedAt,
+                            UpdatedAt = memory.UpdatedAt,
+                            FilePath = filePath,
+                            RelativePath = Path.GetRelativePath(_options.VaultPath, filePath)
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Skip file on error
+                    continue;
+                }
             }
-            return Task.FromResult<IReadOnlyCollection<MemoryFile>>(files);
+            return files;
         }
-    }
 
-    public class MemoryFile
-    {
-        public Guid Id { get; set; }
-        public string Title { get; set; } = default!;
-        public Domain.Knowledge.MemoryType Type { get; set; }
-        public string Content { get; set; } = default!;
-        public string? Project { get; set; }
-        public IReadOnlyCollection<string>? Tags { get; set; }
-        public IReadOnlyCollection<string>? Relations { get; set; }
-        public string? Source { get; set; }
-        public decimal Importance { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public string FilePath { get; set; } = default!;
-        public string RelativePath { get; set; } = default!;
+        private MemoryDomain.Memory? ParseMemoryFromMarkdown(string markdown, string filePath)
+        {
+            try
+            {
+                // Split frontmatter
+                var parts = markdown.Split(new[] { "
+---
+", "
+---
+" }, StringSplitOptions.None);
+                if (parts.Length < 3)
+                {
+                    // No frontmatter
+                    return null;
+                }
+                var frontmatter = parts[1];
+                var rest = parts[2];
+
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
+                var frontmatterObj = deserializer.Deserialize<FrontmatterData>(frontmatter);
+
+                // Parse content: first line is title (starting with # ), then blank line, then content, then optional relations section.
+                var lines = rest.Split(new[] { "
+", "
+" }, StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length == 0)
+                {
+                    return null;
+                }
+                // Assume first line is title with # 
+                var titleLine = lines[0];
+                string title = titleLine.TrimStart();
+                if (title.StartsWith("# "))
+                {
+                    title = title.Substring(2).Trim();
+                }
+                else
+                {
+                    title = titleLine.Trim();
+                }
+
+                // Find where content ends and relations start
+                int contentEnd = lines.Length;
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    if (lines[i].TrimStart().StartsWith("## Relacionamentos"))
+                    {
+                        contentEnd = i;
+                        break;
+                    }
+                }
+                var contentLines = lines.Skip(1).Take(contentEnd - 1).ToArray();
+                var content = string.Join("
+", contentLines).TrimEnd();
+
+                // Extract relations from the rest (if any)
+                IReadOnlyCollection<string>? relations = null;
+                if (contentEnd < lines.Length)
+                {
+                    var relationLines = lines.Skip(contentEnd + 1).ToArray(); // skip the header line
+                    var rels = new List<string>();
+                    foreach (var rel in relationLines)
+                    {
+                        var trimmed = rel.Trim();
+                        if (trimmed.StartsWith("- "))
+                        {
+                            trimmed = trimmed.Substring(2).Trim();
+                        }
+                        // Remove wikilinks brackets if present
+                        if (trimmed.StartsWith("[[") && trimmed.EndsWith("]]"))
+                        {
+                            trimmed = trimmed.Substring(2, trimmed.Length - 4);
+                        }
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                        {
+                            rels.Add(trimmed);
+                        }
+                    }
+                    if (rels.Any())
+                    {
+                        relations = rels;
+                    }
+                }
+
+                // Build Memory object
+                var memory = new MemoryDomain.Memory(
+                    frontmatterObj.Id,
+                    title,
+                    frontmatterObj.Type,
+                    content,
+                    frontmatterObj.Project,
+                    frontmatterObj.Tags,
+                    relations,
+                    frontmatterObj.Source,
+                    frontmatterObj.Importance,
+                    frontmatterObj.CreatedAt,
+                    frontmatterObj.UpdatedAt
+                );
+
+                return memory;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private class FrontmatterData
+        {
+            public Guid Id { get; set; }
+            public string Type { get; set; } = string.Empty;
+            public string? Project { get; set; }
+            public IReadOnlyCollection<string>? Tags { get; set; }
+            public IReadOnlyCollection<string>? Relations { get; set; }
+            public string? Source { get; set; }
+            public decimal Importance { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
+        }
     }
 }
