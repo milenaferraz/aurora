@@ -61,6 +61,22 @@ public static class InfrastructureServiceExtensions
     services.AddSingleton<IMarkdownGenerator, MarkdownGenerator>();
     services.AddSingleton<ISlugGenerator, SlugGenerator>();
 
+        // Register orchestrator services
+        services.AddSingleton<IOrchestrator, OrchestratorService>();
+        services.AddSingleton<ITaskDecomposer, DefaultTaskDecomposer>();
+        services.AddSingleton<IAgentSelector, DefaultAgentSelector>();
+        services.AddSingleton<IResultAggregator, DefaultResultAggregator>();
+        services.AddOptions<OrchestratorOptions>()
+                .Configure<IConfiguration>((settings, config) => {
+                    config.GetSection("Orchestrator").Bind(settings);
+                });
+
+        // Register agent services
+        services.AddTransient<DevOpsAgent>();
+        services.AddTransient<SecurityAgent>();
+        services.AddTransient<QAAgent>();
+        services.AddSingleton<IAgentFactory, AgentFactory>();
+
         return services;
     }
 }
